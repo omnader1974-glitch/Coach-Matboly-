@@ -1,105 +1,260 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  doc,
+  getDoc,
+  setDoc,
+  onSnapshot,
+  serverTimestamp,
+} from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { SiteConfig } from '../types/fitness';
 import { DEFAULT_SITE_CONFIG } from '../data/initialData';
 
-const STORAGE_KEY = 'coach_matboly_fitness_config_v1';
-const LEGACY_STORAGE_KEY = 'mohamed_ahmed_fitness_config_v2';
+const COLLECTION_NAME = 'site_config';
+const DOC_ID = 'main';
+const LOCAL_CACHE_KEY = 'coach_matboly_fitness_config_v1';
+const LEGACY_CACHE_KEY = 'mohamed_ahmed_fitness_config_v2';
+
+// Helper to recursively remove undefined values which are rejected by Firestore
+function sanitizeForFirestore(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return null;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map((item) => sanitizeForFirestore(item));
+  }
+  if (typeof obj === 'object') {
+    const cleaned: Record<string, any> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        cleaned[key] = sanitizeForFirestore(value);
+      }
+    }
+    return cleaned;
+  }
+  return obj;
+}
+
+// Deep merge helper to ensure backward compatibility with schema changes
+function mergeWithDefaults(data: any): SiteConfig {
+  if (!data || typeof data !== 'object') {
+    return DEFAULT_SITE_CONFIG;
+  }
+
+  const merged: SiteConfig = {
+    ...DEFAULT_SITE_CONFIG,
+    hero: { ...DEFAULT_SITE_CONFIG.hero, ...(data.hero || {}) },
+    about: {
+      ...DEFAULT_SITE_CONFIG.about,
+      ...(data.about || {}),
+      paragraphs: Array.isArray(data.about?.paragraphs)
+        ? data.about.paragraphs
+        : DEFAULT_SITE_CONFIG.about.paragraphs,
+      credentials: Array.isArray(data.about?.credentials)
+        ? data.about.credentials
+        : DEFAULT_SITE_CONFIG.about.credentials,
+      stats: Array.isArray(data.about?.stats)
+        ? data.about.stats
+        : DEFAULT_SITE_CONFIG.about.stats,
+    },
+    subscription: {
+      ...DEFAULT_SITE_CONFIG.subscription,
+      ...(data.subscription || {}),
+      reels: Array.isArray(data.subscription?.reels)
+        ? data.subscription.reels
+        : DEFAULT_SITE_CONFIG.subscription.reels,
+    },
+    plans: {
+      ...DEFAULT_SITE_CONFIG.plans,
+      ...(data.plans || {}),
+      plans: Array.isArray(data.plans?.plans)
+        ? data.plans.plans
+        : DEFAULT_SITE_CONFIG.plans.plans,
+    },
+    choices: {
+      ...DEFAULT_SITE_CONFIG.choices,
+      ...(data.choices || {}),
+      features: Array.isArray(data.choices?.features)
+        ? data.choices.features
+        : DEFAULT_SITE_CONFIG.choices.features,
+    },
+    contact: {
+      ...DEFAULT_SITE_CONFIG.contact,
+      ...(data.contact || {}),
+      socials: { ...DEFAULT_SITE_CONFIG.contact.socials, ...(data.contact?.socials || {}) },
+    },
+    footer: {
+      ...DEFAULT_SITE_CONFIG.footer,
+      ...(data.footer || {}),
+    },
+  };
+
+  // Ensure coach branding is always Coach Matboly
+  if (merged.footer.brandName.toLowerCase().includes('mohamed')) {
+    merged.footer.brandName = 'COACH MATBOLY';
+  }
+  if (merged.about.coachName.toLowerCase().includes('mohamed')) {
+    merged.about.coachName = 'Coach Matboly';
+  }
+  if (merged.about.signatureText && merged.about.signatureText.toLowerCase().includes('mohamed')) {
+    merged.about.signatureText = 'COACH MATBOLY';
+  }
+
+  return merged;
+}
 
 export function useSiteConfig() {
+  // Load initial fallback from local cache if available for instant paint
   const [config, setConfig] = useState<SiteConfig>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Merge with DEFAULT_SITE_CONFIG to ensure new fields are present
-        const merged: SiteConfig = {
-          ...DEFAULT_SITE_CONFIG,
-          ...parsed,
-          hero: { ...DEFAULT_SITE_CONFIG.hero, ...(parsed.hero || {}) },
-          about: { ...DEFAULT_SITE_CONFIG.about, ...(parsed.about || {}) },
-          subscription: { ...DEFAULT_SITE_CONFIG.subscription, ...(parsed.subscription || {}) },
-          plans: { ...DEFAULT_SITE_CONFIG.plans, ...(parsed.plans || {}) },
-          choices: { ...DEFAULT_SITE_CONFIG.choices, ...(parsed.choices || {}) },
-          contact: { ...DEFAULT_SITE_CONFIG.contact, ...(parsed.contact || {}) },
-          footer: { ...DEFAULT_SITE_CONFIG.footer, ...(parsed.footer || {}) },
-        };
-        // Ensure brandName and coachName are always Coach Matboly
-        if (merged.footer.brandName.toLowerCase().includes('mohamed')) {
-          merged.footer.brandName = 'COACH MATBOLY';
-        }
-        if (merged.about.coachName.toLowerCase().includes('mohamed')) {
-          merged.about.coachName = 'Coach Matboly';
-        }
-        if (merged.about.signatureText.toLowerCase().includes('mohamed')) {
-          merged.about.signatureText = 'COACH MATBOLY';
-        }
-        return merged;
+      const cached = localStorage.getItem(LOCAL_CACHE_KEY) || localStorage.getItem(LEGACY_CACHE_KEY);
+      if (cached) {
+        return mergeWithDefaults(JSON.parse(cached));
       }
-    } catch (e) {
-      console.warn('Failed to parse saved config from localStorage', e);
+    } catch {
+      // ignore
     }
     return DEFAULT_SITE_CONFIG;
   });
 
+  const [loading, setLoading] = useState(true);
+  const [syncStatus, setSyncStatus] = useState<'synced' | 'saving' | 'error'>('synced');
   const [hasSavedNotice, setHasSavedNotice] = useState(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitialRemoteLoadRef = useRef(true);
 
+  // Real-time listener: Single Source of Truth in Firestore
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-    } catch (e) {
-      console.error('Failed to save config to localStorage', e);
-    }
-  }, [config]);
+    const docRef = doc(db, COLLECTION_NAME, DOC_ID);
 
-  const updateConfig = (newConfig: Partial<SiteConfig> | ((prev: SiteConfig) => SiteConfig)) => {
+    const unsubscribe = onSnapshot(
+      docRef,
+      async (docSnap) => {
+        if (docSnap.exists()) {
+          const remoteData = docSnap.data();
+          const mergedConfig = mergeWithDefaults(remoteData);
+          setConfig(mergedConfig);
+          try {
+            localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(mergedConfig));
+          } catch {
+            // ignore
+          }
+          setSyncStatus('synced');
+          setLoading(false);
+          isInitialRemoteLoadRef.current = false;
+        } else {
+          // If document does not exist in Firestore yet, seed the database with DEFAULT_SITE_CONFIG
+          try {
+            const sanitized = sanitizeForFirestore({
+              ...DEFAULT_SITE_CONFIG,
+              _createdAt: serverTimestamp(),
+              _lastUpdated: serverTimestamp(),
+            });
+            await setDoc(docRef, sanitized);
+            setConfig(DEFAULT_SITE_CONFIG);
+          } catch (seedErr) {
+            console.error('Failed to seed default config to Firestore:', seedErr);
+          }
+          setLoading(false);
+          isInitialRemoteLoadRef.current = false;
+        }
+      },
+      (error) => {
+        console.error('Firestore site_config real-time listener error:', error);
+        setSyncStatus('error');
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  // Save to Central Firestore Database
+  const persistToFirestore = useCallback(async (newConfig: SiteConfig) => {
+    setSyncStatus('saving');
+    try {
+      const docRef = doc(db, COLLECTION_NAME, DOC_ID);
+      const sanitized = sanitizeForFirestore({
+        ...newConfig,
+        _lastUpdated: serverTimestamp(),
+      });
+      await setDoc(docRef, sanitized, { merge: true });
+      
+      // Update local cache
+      try {
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(newConfig));
+      } catch {
+        // ignore
+      }
+
+      setSyncStatus('synced');
+      setHasSavedNotice(true);
+      setTimeout(() => setHasSavedNotice(false), 2500);
+      return { success: true };
+    } catch (err: any) {
+      console.error('Error saving site config to Firestore database:', err);
+      setSyncStatus('error');
+      return { success: false, error: err?.message || 'Database save failed' };
+    }
+  }, []);
+
+  // Queue debounced save to prevent write spam during rapid typing in admin inputs
+  const triggerDebouncedSave = useCallback((newConfig: SiteConfig) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    setSyncStatus('saving');
+    debounceTimerRef.current = setTimeout(() => {
+      persistToFirestore(newConfig);
+    }, 400);
+  }, [persistToFirestore]);
+
+  const updateConfig = useCallback((updater: Partial<SiteConfig> | ((prev: SiteConfig) => SiteConfig), immediate = false) => {
     setConfig((prev) => {
-      const updated = typeof newConfig === 'function' ? newConfig(prev) : { ...prev, ...newConfig };
-      return updated;
+      const next = typeof updater === 'function' ? updater(prev) : { ...prev, ...updater };
+      if (immediate) {
+        persistToFirestore(next);
+      } else {
+        triggerDebouncedSave(next);
+      }
+      return next;
     });
-    setHasSavedNotice(true);
-    setTimeout(() => setHasSavedNotice(false), 2500);
-  };
+  }, [persistToFirestore, triggerDebouncedSave]);
 
-  const updateHero = (heroUpdates: Partial<SiteConfig['hero']>) => {
+  const updateHero = useCallback((heroUpdates: Partial<SiteConfig['hero']>) => {
     updateConfig((prev) => ({ ...prev, hero: { ...prev.hero, ...heroUpdates } }));
-  };
+  }, [updateConfig]);
 
-  const updateAbout = (aboutUpdates: Partial<SiteConfig['about']>) => {
+  const updateAbout = useCallback((aboutUpdates: Partial<SiteConfig['about']>) => {
     updateConfig((prev) => ({ ...prev, about: { ...prev.about, ...aboutUpdates } }));
-  };
+  }, [updateConfig]);
 
-  const updateSubscription = (subUpdates: Partial<SiteConfig['subscription']>) => {
+  const updateSubscription = useCallback((subUpdates: Partial<SiteConfig['subscription']>) => {
     updateConfig((prev) => ({ ...prev, subscription: { ...prev.subscription, ...subUpdates } }));
-  };
+  }, [updateConfig]);
 
-  const updatePlans = (plansUpdates: Partial<SiteConfig['plans']>) => {
+  const updatePlans = useCallback((plansUpdates: Partial<SiteConfig['plans']>) => {
     updateConfig((prev) => ({ ...prev, plans: { ...prev.plans, ...plansUpdates } }));
-  };
+  }, [updateConfig]);
 
-  const updateChoices = (choicesUpdates: Partial<SiteConfig['choices']>) => {
+  const updateChoices = useCallback((choicesUpdates: Partial<SiteConfig['choices']>) => {
     updateConfig((prev) => ({ ...prev, choices: { ...prev.choices, ...choicesUpdates } }));
-  };
+  }, [updateConfig]);
 
-  const updateContact = (contactUpdates: Partial<SiteConfig['contact']>) => {
+  const updateContact = useCallback((contactUpdates: Partial<SiteConfig['contact']>) => {
     updateConfig((prev) => ({ ...prev, contact: { ...prev.contact, ...contactUpdates } }));
-  };
+  }, [updateConfig]);
 
-  const updateFooter = (footerUpdates: Partial<SiteConfig['footer']>) => {
+  const updateFooter = useCallback((footerUpdates: Partial<SiteConfig['footer']>) => {
     updateConfig((prev) => ({ ...prev, footer: { ...prev.footer, ...footerUpdates } }));
-  };
+  }, [updateConfig]);
 
-  const resetToDefaults = () => {
+  const resetToDefaults = useCallback(async () => {
     setConfig(DEFAULT_SITE_CONFIG);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SITE_CONFIG));
-    } catch (e) {
-      console.error(e);
-    }
-    setHasSavedNotice(true);
-    setTimeout(() => setHasSavedNotice(false), 2500);
-  };
+    await persistToFirestore(DEFAULT_SITE_CONFIG);
+  }, [persistToFirestore]);
 
-  const exportConfigJSON = () => {
+  const exportConfigJSON = useCallback(() => {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(config, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
@@ -107,22 +262,24 @@ export function useSiteConfig() {
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
-  };
+  }, [config]);
 
-  const importConfigJSON = (jsonString: string) => {
+  const importConfigJSON = useCallback(async (jsonString: string) => {
     try {
       const parsed = JSON.parse(jsonString);
-      setConfig(parsed);
-      setHasSavedNotice(true);
-      setTimeout(() => setHasSavedNotice(false), 2500);
+      const merged = mergeWithDefaults(parsed);
+      setConfig(merged);
+      await persistToFirestore(merged);
       return { success: true };
     } catch (err: unknown) {
-      return { success: false, error: err instanceof Error ? err.message : 'Invalid JSON file' };
+      return { success: false, error: err instanceof Error ? err.message : 'Invalid JSON file format' };
     }
-  };
+  }, [persistToFirestore]);
 
   return {
     config,
+    loading,
+    syncStatus,
     updateConfig,
     updateHero,
     updateAbout,

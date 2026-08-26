@@ -38,6 +38,8 @@ interface AdminDashboardProps {
   isOpen: boolean;
   onClose: () => void;
   onLogout?: () => void;
+  syncStatus?: 'synced' | 'saving' | 'error';
+  hasSavedNotice?: boolean;
   config: SiteConfig;
   updateHero: (updates: Partial<SiteConfig['hero']>) => void;
   updateAbout: (updates: Partial<SiteConfig['about']>) => void;
@@ -48,7 +50,7 @@ interface AdminDashboardProps {
   updateFooter: (updates: Partial<SiteConfig['footer']>) => void;
   resetToDefaults: () => void;
   exportConfigJSON: () => void;
-  importConfigJSON: (jsonStr: string) => { success: boolean; error?: string };
+  importConfigJSON: (jsonStr: string) => Promise<{ success: boolean; error?: string }> | { success: boolean; error?: string };
   customers: CustomerRegistration[];
   updateCustomerStatus: (customerId: string, status: CustomerRegistration['status']) => Promise<{ success: boolean }>;
   deleteCustomer: (customerId: string) => Promise<{ success: boolean }>;
@@ -60,6 +62,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   isOpen,
   onClose,
   onLogout,
+  syncStatus = 'synced',
+  hasSavedNotice = false,
   config,
   updateHero,
   updateAbout,
@@ -219,10 +223,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            {saveToast && (
+            {syncStatus === 'saving' ? (
+              <span className="inline-flex items-center gap-1.5 text-xs text-[#FFE600] font-bold bg-neutral-900 border border-[#FFE600]/40 px-3 py-1.5 rounded-full animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-[#FFE600] animate-ping" />
+                جاري الحفظ في السحابة...
+              </span>
+            ) : syncStatus === 'error' ? (
+              <span className="inline-flex items-center gap-1.5 text-xs text-red-400 font-bold bg-red-950/80 border border-red-800/60 px-3 py-1.5 rounded-full">
+                <span className="w-2 h-2 rounded-full bg-red-500" />
+                خطأ في المزامنة السحابية
+              </span>
+            ) : hasSavedNotice || saveToast ? (
               <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-[#FFE600] font-bold bg-neutral-900 border border-[#FFE600]/40 px-3 py-1.5 rounded-full animate-in fade-in">
                 <CheckCircle2 className="w-4 h-4 text-[#FFE600]" />
-                تم التحديث والحفظ في قاعدة البيانات
+                محفوظ في السحابة لجميع الزوار
+              </span>
+            ) : (
+              <span className="hidden md:inline-flex items-center gap-1.5 text-[11px] text-emerald-400 font-medium bg-neutral-900/90 border border-neutral-800 px-2.5 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                متصل بقاعدة البيانات المركزية
               </span>
             )}
             {onLogout && (

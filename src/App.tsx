@@ -25,6 +25,8 @@ export default function App() {
   const { isRTL } = useLanguage();
   const {
     config,
+    syncStatus,
+    hasSavedNotice,
     updateHero,
     updateAbout,
     updateSubscription,
@@ -161,6 +163,8 @@ export default function App() {
         isOpen={isDashboardOpen}
         onClose={() => setIsDashboardOpen(false)}
         onLogout={handleAdminLogout}
+        syncStatus={syncStatus}
+        hasSavedNotice={hasSavedNotice}
         config={config}
         updateHero={updateHero}
         updateAbout={updateAbout}
