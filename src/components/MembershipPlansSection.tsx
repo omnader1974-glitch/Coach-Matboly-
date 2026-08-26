@@ -1,0 +1,162 @@
+import React from 'react';
+import { Check, Flame, Zap, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
+import { MembershipPlansData, MembershipPlan } from '../types/fitness';
+import { useLanguage } from '../context/LanguageContext';
+
+interface MembershipPlansSectionProps {
+  data: MembershipPlansData;
+  onSelectPlan: (plan: MembershipPlan) => void;
+}
+
+export const MembershipPlansSection: React.FC<MembershipPlansSectionProps> = ({ data, onSelectPlan }) => {
+  const { t, isRTL } = useLanguage();
+  // Ensure we show 4 plans in a 2x2 grid (Row 1: 2 plans, Row 2: 2 plans)
+  const displayPlans = data.plans.slice(0, 4);
+
+  return (
+    <section id="membership-plans" className="relative py-20 sm:py-28 bg-[#0b0b0b] border-t border-b border-neutral-800/80 overflow-hidden">
+      {/* Background Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FFE600]/5 rounded-full blur-[140px] pointer-events-none" />
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-14 sm:mb-16">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-neutral-900 border border-neutral-800 text-[#FFE600] text-xs font-bold tracking-widest uppercase mb-3 rounded-full">
+            <Zap className="w-3.5 h-3.5 text-[#FFE600]" />
+            <span>{t.plans.badge}</span>
+          </div>
+
+          <h2 className="font-heading font-black text-4xl sm:text-5xl md:text-6xl text-white tracking-tight uppercase">
+            {t.plans.sectionTitle}
+          </h2>
+
+          <p className="text-xs sm:text-sm md:text-base text-neutral-400 font-semibold tracking-wider uppercase mt-3 max-w-2xl mx-auto">
+            {t.plans.subtitle}
+          </p>
+
+          <div className="w-20 h-1 bg-[#FFE600] mx-auto mt-4" />
+        </div>
+
+        {/* 2 PLANS PER ROW: Row 1 has 2 plans, Row 2 has 2 plans */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-stretch max-w-5xl mx-auto">
+          {displayPlans.map((plan, index) => {
+            const isHighlighted = plan.isPopular;
+            const translatedPlan = t.plans.plans[index] || {
+              name: plan.name,
+              duration: plan.duration,
+              badgeText: plan.badgeText,
+              description: plan.description,
+              periodText: plan.periodText,
+              ctaText: plan.ctaText,
+              features: plan.features,
+            };
+
+            return (
+              <div
+                key={plan.id || index}
+                className={`relative flex flex-col justify-between rounded-xl p-6 sm:p-8 transition-all duration-300 ${
+                  isHighlighted
+                    ? 'bg-neutral-900/95 border-2 border-[#FFE600] shadow-[0_0_35px_rgba(255,230,0,0.18)] scale-[1.01] z-10'
+                    : 'bg-[#121212] border border-neutral-800 hover:border-neutral-700 hover:shadow-xl'
+                }`}
+              >
+                {/* Popular / Best Value Badge */}
+                {translatedPlan.badgeText && (
+                  <div className={`absolute -top-3.5 ${isRTL ? 'right-8' : 'left-8'}`}>
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black tracking-widest uppercase shadow-md ${
+                        isHighlighted
+                          ? 'bg-[#FFE600] text-black shadow-[0_0_15px_rgba(255,230,0,0.4)]'
+                          : 'bg-neutral-800 text-[#FFE600] border border-[#FFE600]/40'
+                      }`}
+                    >
+                      <Flame className="w-3.5 h-3.5 fill-current" />
+                      {translatedPlan.badgeText}
+                    </span>
+                  </div>
+                )}
+
+                <div>
+                  {/* Duration & Plan Name */}
+                  <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between pb-4 border-b border-neutral-800/80 pt-1">
+                    <div>
+                      <span className="text-xs font-bold tracking-widest text-[#FFE600] uppercase block">
+                        {translatedPlan.name}
+                      </span>
+                      <h3 className="font-heading font-black text-2xl sm:text-3xl text-white tracking-wide uppercase mt-1">
+                        {translatedPlan.duration}
+                      </h3>
+                    </div>
+                    <div className="mt-2 sm:mt-0 text-left sm:text-right">
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-heading font-black text-4xl sm:text-5xl text-[#FFE600] tracking-tight">
+                          {plan.price}
+                        </span>
+                        {plan.originalPrice && (
+                          <span className="text-base text-neutral-500 line-through font-bold">
+                            {plan.originalPrice}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">
+                        {translatedPlan.periodText}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Plan Description */}
+                  {translatedPlan.description && (
+                    <p className="text-sm text-neutral-300 mt-4 leading-relaxed">
+                      {translatedPlan.description}
+                    </p>
+                  )}
+
+                  {/* Features List with Yellow Checks */}
+                  <div className="space-y-3 pt-5 pb-6">
+                    <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest">
+                      {t.plans.includedTitle}
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {translatedPlan.features.map((feature, fIdx) => (
+                        <div key={fIdx} className="flex items-start gap-2.5 text-xs sm:text-sm text-neutral-200">
+                          <div className="w-4 h-4 rounded-full bg-[#FFE600]/20 flex items-center justify-center shrink-0 mt-0.5">
+                            <Check className="w-3 h-3 text-[#FFE600] stroke-[3]" />
+                          </div>
+                          <span className="font-medium leading-tight">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Yellow CTA Button */}
+                <div className="pt-4 mt-auto border-t border-neutral-800/60">
+                  <button
+                    onClick={() => onSelectPlan({ ...plan, name: translatedPlan.name, duration: translatedPlan.duration })}
+                    className={`w-full py-4 px-6 rounded-sm font-heading font-black text-base sm:text-lg tracking-wider uppercase transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${
+                      isHighlighted
+                        ? 'bg-[#FFE600] hover:bg-[#fff033] active:scale-98 text-black shadow-[0_0_20px_rgba(255,230,0,0.35)]'
+                        : 'bg-neutral-800 hover:bg-[#FFE600] active:scale-98 text-white hover:text-black border border-neutral-700 hover:border-[#FFE600]'
+                    }`}
+                  >
+                    <span>{translatedPlan.ctaText}</span>
+                    {isRTL ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Guarantee Banner */}
+        <div className="mt-14 max-w-2xl mx-auto bg-neutral-900/60 border border-neutral-800 p-4 sm:p-5 rounded-md flex items-center justify-center gap-4 text-center">
+          <ShieldCheck className="w-6 h-6 text-[#FFE600] shrink-0" />
+          <p className="text-xs sm:text-sm text-neutral-300 font-medium">
+            <strong className="text-white">{t.plans.guaranteeTitle}</strong> {t.plans.guaranteeText}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+};
+

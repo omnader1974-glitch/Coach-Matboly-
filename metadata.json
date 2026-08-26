@@ -1,0 +1,6 @@
+{
+  "name": "Coach Matboly",
+  "description": "Elite online & in-person fitness coaching, custom transformation plans, and subscription workout reels by Coach Matboly.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

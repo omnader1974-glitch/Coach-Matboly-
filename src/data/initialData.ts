@@ -1,0 +1,259 @@
+import { SiteConfig } from '../types/fitness';
+
+export const DEFAULT_SITE_CONFIG: SiteConfig = {
+  hero: {
+    badge: 'ELITE ONLINE & IN-PERSON COACHING',
+    mainTitle: 'COACH MATBOLY',
+    highlightText: '[ BE YOURSELF ]',
+    subheadline: 'TRANSFORM YOUR PHYSIQUE, ELEVATE YOUR DISCIPLINE, UNLEASH YOUR TRUE POTENTIAL',
+    buttonText: 'JOIN TODAY',
+    buttonLink: '#membership-plans',
+    mediaType: 'image',
+    mediaUrl: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=1600&auto=format&fit=crop',
+    overlayDarkness: 75,
+  },
+  about: {
+    sectionTitle: 'WHO IS COACH MATBOLY',
+    coachName: 'Coach Matboly',
+    subtitle: 'PROFESSIONAL FITNESS ATHLETE & MASTER TRANSFORMATION COACH',
+    paragraphs: [
+      'With over a decade of high-performance coaching experience, Coach Matboly has helped hundreds of dedicated individuals break through genetic plateaus, shed stubborn fat, and build sculpted, functional physiques.',
+      'My coaching philosophy is rooted in science-backed training protocols, individualized nutritional precision, and uncompromising mental discipline. Whether you are stepping into the gym for the first time or preparing for peak athletic conditioning, we build a tailored roadmap designed exclusively for your lifestyle.',
+    ],
+    credentials: [
+      'Certified Strength & Conditioning Specialist (CSCS)',
+      'Advanced Sports Nutrition & Macronutrient Specialist',
+      'Over 500+ Documented Client Body Transformations',
+      'Former Competitive Physique Athlete & Trainer',
+    ],
+    stats: [
+      { value: '10+', label: 'Years Coaching' },
+      { value: '500+', label: 'Transformations' },
+      { value: '98%', label: 'Success Rate' },
+      { value: '24/7', label: 'Direct Support' },
+    ],
+    primaryPhoto: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop',
+    secondaryPhoto: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=800&auto=format&fit=crop',
+    signatureText: 'COACH MATBOLY',
+  },
+  subscription: {
+    sectionTitle: 'HOW TO SUBSCRIPTION',
+    subtitle: 'FOLLOW THESE 3 SIMPLE STEPS TO START YOUR PERSONALIZED JOURNEY TODAY',
+    reels: [
+      {
+        id: 'reel-1',
+        stepNumber: '01',
+        title: 'SELECT YOUR GOAL & PLAN',
+        description: 'Choose your desired membership tier that matches your timeline and personal fitness aspirations.',
+        videoUrl: 'https://assets.mixkit.co/videos/1199/1199-720.mp4',
+        posterUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop',
+        badge: 'STEP 1',
+      },
+      {
+        id: 'reel-2',
+        stepNumber: '02',
+        title: 'RECEIVE CUSTOM PROTOCOL',
+        description: 'Get your customized training split, macro targets, and form video guides directly on your phone.',
+        videoUrl: 'https://assets.mixkit.co/videos/43666/43666-720.mp4',
+        posterUrl: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=600&auto=format&fit=crop',
+        badge: 'STEP 2',
+      },
+      {
+        id: 'reel-3',
+        stepNumber: '03',
+        title: 'EXECUTE & TRANSFORM',
+        description: 'Track weekly check-ins with Coach Matboly, adjust metrics in real-time, and guarantee results.',
+        videoUrl: 'https://assets.mixkit.co/videos/34563/34563-720.mp4',
+        posterUrl: 'https://images.unsplash.com/photo-1549060279-7e168fcee0c2?q=80&w=600&auto=format&fit=crop',
+        badge: 'STEP 3',
+      },
+    ],
+  },
+  plans: {
+    sectionTitle: 'MEMBERSHIP PLANS',
+    subtitle: 'INVEST IN YOUR HEALTH AND GET TAILORED COACHING DESIGNED FOR GUARANTEED RESULTS',
+    plans: [
+      {
+        id: 'plan-1',
+        name: 'STARTER PASS',
+        duration: '1 MONTH',
+        price: '$59',
+        originalPrice: '$89',
+        periodText: 'Per Month / Billed Monthly',
+        isPopular: false,
+        badgeText: 'GETTING STARTED',
+        description: 'Ideal for kickstarting your routine with customized workout splits and nutrition guidelines.',
+        features: [
+          'Personalized Workout Split (Gym/Home)',
+          'Customized Macronutrient Targets',
+          'Weekly Email Progress Check-ins',
+          'Exercise Video Demonstration Library',
+          'Private Community Support Group',
+        ],
+        ctaText: 'START 1 MONTH',
+        ctaLink: '#checkout',
+      },
+      {
+        id: 'plan-2',
+        name: 'MOMENTUM BUILDER',
+        duration: '3 MONTHS',
+        price: '$149',
+        originalPrice: '$210',
+        periodText: 'Total / Save 25%',
+        isPopular: true,
+        badgeText: 'MOST POPULAR',
+        description: 'The optimal timeframe to build sustainable muscle mass, shed body fat, and create permanent habits.',
+        features: [
+          'Everything in Starter Pass',
+          'Weekly 1-on-1 Video Form Assessment',
+          'Bi-Weekly Nutrition & Calorie Tweaks',
+          'Direct WhatsApp Messaging Access',
+          'Supplementation Protocol & Guide',
+          'Progressive Overload Tracking Sheet',
+        ],
+        ctaText: 'JOIN 3 MONTHS',
+        ctaLink: '#checkout',
+      },
+      {
+        id: 'plan-3',
+        name: 'TOTAL TRANSFORMATION',
+        duration: '6 MONTHS',
+        price: '$279',
+        originalPrice: '$390',
+        periodText: 'Total / Save 35%',
+        isPopular: false,
+        badgeText: 'BEST VALUE',
+        description: 'A complete physical overhaul for those serious about dramatic aesthetic and athletic results.',
+        features: [
+          'Everything in Momentum Plan',
+          'Priority 24/7 WhatsApp Voice Support',
+          'Dynamic Cardio & Conditioning Split',
+          'Plateau-Busting Periodization Blocks',
+          'Travel & Restaurant Dining Cheat Sheets',
+          'Personalized Mobility & Recovery Routine',
+        ],
+        ctaText: 'JOIN 6 MONTHS',
+        ctaLink: '#checkout',
+      },
+      {
+        id: 'plan-4',
+        name: 'ELITE VIP YEAR',
+        duration: '12 MONTHS',
+        price: '$499',
+        originalPrice: '$750',
+        periodText: 'Total / Best Long-term Deal',
+        isPopular: false,
+        badgeText: 'MAXIMUM GAINS',
+        description: 'Year-round elite mentorship with Coach Matboly. Total body recomposition and peak performance.',
+        features: [
+          'Full 365-Day Complete VIP Access',
+          '1-on-1 Monthly Strategy Zoom Calls',
+          'Unlimited Workout Plan Revisions',
+          'Real-Time Meal Adjustments & Coaching',
+          'Exclusive VIP Merch Welcome Pack',
+          'Guaranteed Results Transformation Contract',
+        ],
+        ctaText: 'JOIN 12 MONTHS',
+        ctaLink: '#checkout',
+      },
+    ],
+  },
+  choices: {
+    sectionTitle: 'MAKE HEALTHIER CHOICES',
+    subtitle: 'THE THREE PILLARS OF LIFELONG PHYSICAL AND MENTAL EXCELLENCE',
+    features: [
+      {
+        id: 'choice-1',
+        iconName: 'dumbbell',
+        title: 'CUSTOMIZED WORKOUT REGIMEN',
+        description: 'Every rep, set, tempo, and rest period is calibrated to your biomechanics, training age, and target goals.',
+        highlightNumber: '01',
+        imageBg: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop',
+      },
+      {
+        id: 'choice-2',
+        iconName: 'apple',
+        title: 'SUSTAINABLE NUTRITION PROTOCOL',
+        description: 'No starving, no extreme bland diets. Enjoy delicious foods calculated precisely for your metabolism and body fat loss.',
+        highlightNumber: '02',
+        imageBg: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=600&auto=format&fit=crop',
+      },
+      {
+        id: 'choice-3',
+        iconName: 'shield',
+        title: '24/7 ACCOUNTABILITY & COACHING',
+        description: 'Direct access to Coach Matboly to eliminate guesswork, fix technique mistakes, and keep you disciplined every single day.',
+        highlightNumber: '03',
+        imageBg: 'https://images.unsplash.com/photo-1549060279-7e168fcee0c2?q=80&w=600&auto=format&fit=crop',
+      },
+    ],
+  },
+  contact: {
+    sectionTitle: 'GET IN TOUCH TODAY',
+    subtitle: 'START YOUR TRANSFORMATION WITH COACH MATBOLY - REACH OUT DIRECTLY VIA WHATSAPP OR SOCIALS',
+    backgroundImage: 'https://images.unsplash.com/photo-1534367507873-d2d7e24c797f?q=80&w=1600&auto=format&fit=crop',
+    whatsappNumber: '+201000000000',
+    email: 'coach@coachmatboly.com',
+    phone: '+20 100 000 0000',
+    location: 'Elite Training Facility & Worldwide Online Coaching',
+    socials: {
+      facebook: 'https://facebook.com',
+      tiktok: 'https://tiktok.com',
+      instagram: 'https://instagram.com',
+      whatsapp: 'https://wa.me/201000000000',
+      youtube: 'https://youtube.com',
+    },
+  },
+  footer: {
+    brandName: 'COACH MATBOLY',
+    tagline: 'TRANSFORM YOUR BODY. ELEVATE YOUR MIND.',
+    copyrightText: `© ${new Date().getFullYear()} COACH MATBOLY FITNESS. ALL RIGHTS RESERVED.`,
+    termsContent: `TERMS & CONDITIONS - COACH MATBOLY FITNESS COACHING
+
+1. COACHING SERVICES
+Coach Matboly provides customized online training, nutritional guidance, and direct coaching. All workout and dietary recommendations are designed for healthy individuals and should be followed under personal responsibility.
+
+2. HEALTH & MEDICAL CLEARANCE
+Before starting any physical exercise or nutrition program, clients are strongly advised to consult with a qualified medical professional. Coach Matboly does not provide medical diagnoses or treatment.
+
+3. SUBSCRIPTION & PAYMENTS
+All membership plans are paid upfront for the designated duration (1, 3, 6, or 12 months). Upon successful payment, customized programs are delivered within 24 to 48 hours following the onboarding assessment.
+
+4. CANCELLATION & REFUND POLICY
+Due to the digital and custom nature of personalized training and nutritional programs, fees are non-refundable once the customized plan has been generated and delivered.
+
+5. CLIENT CONDUCT & COMMUNICATION
+Clients are expected to uphold respectful communication during weekly check-ins and WhatsApp interactions. Dedicated coaching support is provided in accordance with the purchased tier.`,
+    privacyContent: `PRIVACY POLICY - COACH MATBOLY FITNESS
+
+1. INFORMATION WE COLLECT
+We collect personal information necessary to design your custom fitness plans, including your name, contact details, age, body weight, fitness history, and dietary preferences.
+
+2. HOW WE USE YOUR INFORMATION
+Your personal data is used solely to:
+- Deliver customized workout and meal plans
+- Conduct weekly check-ins and progress assessments
+- Provide customer support and program updates
+
+3. DATA SECURITY & CONFIDENTIALITY
+All client check-in photos, measurements, and personal data are kept strictly confidential and will never be shared, sold, or publicly displayed without your explicit written consent.
+
+4. COOKIES & LOCAL STORAGE
+This website uses local browser storage to remember your user preferences and dashboard settings.
+
+5. CONTACT PRIVACY OFFICER
+For privacy inquiries, please contact: privacy@coachmatboly.com`,
+    supportContent: `SUPPORT & CLIENT ASSISTANCE
+
+Need help with your subscription or have questions for Coach Matboly?
+
+- WHATSAPP: Fast direct response on WhatsApp
+- EMAIL: support@coachmatboly.com
+- RESPONSE TIME: Within 24 Hours on Business Days
+- WORKING HOURS: Saturday - Thursday: 9:00 AM - 9:00 PM
+
+Check-in Schedule:
+- Weekly check-in forms are submitted every week.
+- Program updates and coaching video reviews are returned within 24-48 hours.`,
+  },
+};
