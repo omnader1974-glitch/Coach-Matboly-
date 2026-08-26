@@ -12,8 +12,7 @@ import { DEFAULT_SITE_CONFIG } from '../data/initialData';
 
 const COLLECTION_NAME = 'site_config';
 const DOC_ID = 'main';
-const LOCAL_CACHE_KEY = 'coach_matboly_fitness_config_v1';
-const LEGACY_CACHE_KEY = 'mohamed_ahmed_fitness_config_v2';
+const LOCAL_CACHE_KEY = 'coach_matboly_fitness_config_v3';
 
 // Helper to recursively remove undefined values which are rejected by Firestore
 function sanitizeForFirestore(obj: any): any {
@@ -35,7 +34,7 @@ function sanitizeForFirestore(obj: any): any {
   return obj;
 }
 
-// Deep merge helper to ensure backward compatibility with schema changes
+// Deep merge helper that strictly preserves saved Firestore values
 function mergeWithDefaults(data: any): SiteConfig {
   if (!data || typeof data !== 'object') {
     return DEFAULT_SITE_CONFIG;
@@ -48,21 +47,21 @@ function mergeWithDefaults(data: any): SiteConfig {
       ...DEFAULT_SITE_CONFIG.about,
       ...(data.about || {}),
       primaryPhoto:
-        data.about?.primaryPhoto ||
-        data.about?.primaryImage ||
-        DEFAULT_SITE_CONFIG.about.primaryPhoto,
+        data.about?.primaryPhoto !== undefined
+          ? data.about.primaryPhoto
+          : (data.about?.primaryImage || DEFAULT_SITE_CONFIG.about.primaryPhoto),
       primaryImage:
-        data.about?.primaryPhoto ||
-        data.about?.primaryImage ||
-        DEFAULT_SITE_CONFIG.about.primaryPhoto,
+        data.about?.primaryPhoto !== undefined
+          ? data.about.primaryPhoto
+          : (data.about?.primaryImage || DEFAULT_SITE_CONFIG.about.primaryPhoto),
       secondaryPhoto:
-        data.about?.secondaryPhoto ||
-        data.about?.secondaryImage ||
-        DEFAULT_SITE_CONFIG.about.secondaryPhoto,
+        data.about?.secondaryPhoto !== undefined
+          ? data.about.secondaryPhoto
+          : (data.about?.secondaryImage || DEFAULT_SITE_CONFIG.about.secondaryPhoto),
       secondaryImage:
-        data.about?.secondaryPhoto ||
-        data.about?.secondaryImage ||
-        DEFAULT_SITE_CONFIG.about.secondaryPhoto,
+        data.about?.secondaryPhoto !== undefined
+          ? data.about.secondaryPhoto
+          : (data.about?.secondaryImage || DEFAULT_SITE_CONFIG.about.secondaryPhoto),
       paragraphs: Array.isArray(data.about?.paragraphs) && data.about.paragraphs.length > 0
         ? data.about.paragraphs
         : (data.about?.bioParagraph1 || data.about?.bioParagraph2)
@@ -78,21 +77,21 @@ function mergeWithDefaults(data: any): SiteConfig {
     subscription: {
       ...DEFAULT_SITE_CONFIG.subscription,
       ...(data.subscription || {}),
-      reels: Array.isArray(data.subscription?.reels)
+      reels: Array.isArray(data.subscription?.reels) && data.subscription.reels.length > 0
         ? data.subscription.reels
         : DEFAULT_SITE_CONFIG.subscription.reels,
     },
     plans: {
       ...DEFAULT_SITE_CONFIG.plans,
       ...(data.plans || {}),
-      plans: Array.isArray(data.plans?.plans)
+      plans: Array.isArray(data.plans?.plans) && data.plans.plans.length > 0
         ? data.plans.plans
         : DEFAULT_SITE_CONFIG.plans.plans,
     },
     choices: {
       ...DEFAULT_SITE_CONFIG.choices,
       ...(data.choices || {}),
-      features: Array.isArray(data.choices?.features)
+      features: Array.isArray(data.choices?.features) && data.choices.features.length > 0
         ? data.choices.features
         : DEFAULT_SITE_CONFIG.choices.features,
     },
@@ -107,11 +106,11 @@ function mergeWithDefaults(data: any): SiteConfig {
     },
   };
 
-  // Ensure coach branding is always Coach Matboly
-  if (merged.footer.brandName.toLowerCase().includes('mohamed')) {
+  // Ensure coach branding is consistent
+  if (merged.footer.brandName && merged.footer.brandName.toLowerCase().includes('mohamed')) {
     merged.footer.brandName = 'COACH MATBOLY';
   }
-  if (merged.about.coachName.toLowerCase().includes('mohamed')) {
+  if (merged.about.coachName && merged.about.coachName.toLowerCase().includes('mohamed')) {
     merged.about.coachName = 'Coach Matboly';
   }
   if (merged.about.signatureText && merged.about.signatureText.toLowerCase().includes('mohamed')) {
@@ -122,10 +121,10 @@ function mergeWithDefaults(data: any): SiteConfig {
 }
 
 export function useSiteConfig() {
-  // Load initial fallback from local cache if available for instant paint
+  // Load initial fallback from local cache if available
   const [config, setConfig] = useState<SiteConfig>(() => {
     try {
-      const cached = localStorage.getItem(LOCAL_CACHE_KEY) || localStorage.getItem(LEGACY_CACHE_KEY);
+      const cached = localStorage.getItem(LOCAL_CACHE_KEY);
       if (cached) {
         return mergeWithDefaults(JSON.parse(cached));
       }
@@ -135,66 +134,25 @@ export function useSiteConfig() {
     return DEFAULT_SITE_CONFIG;
   });
 
+  const latestConfigRef = useRef<SiteConfig>(config);
+  latestConfigRef.current = config;
+
   const [loading, setLoading] = useState(true);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'saving' | 'error'>('synced');
   const [hasSavedNotice, setHasSavedNotice] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const isInitialRemoteLoadRef = useRef(true);
-
-  // Real-time listener: Single Source of Truth in Firestore
-  useEffect(() => {
-    const docRef = doc(db, COLLECTION_NAME, DOC_ID);
-
-    const unsubscribe = onSnapshot(
-      docRef,
-      async (docSnap) => {
-        if (docSnap.exists()) {
-          const remoteData = docSnap.data();
-          const mergedConfig = mergeWithDefaults(remoteData);
-          setConfig(mergedConfig);
-          try {
-            localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(mergedConfig));
-          } catch {
-            // ignore
-          }
-          setSyncStatus('synced');
-          setLoading(false);
-          isInitialRemoteLoadRef.current = false;
-        } else {
-          // If document does not exist in Firestore yet, seed the database with DEFAULT_SITE_CONFIG
-          try {
-            const sanitized = sanitizeForFirestore({
-              ...DEFAULT_SITE_CONFIG,
-              _createdAt: serverTimestamp(),
-              _lastUpdated: serverTimestamp(),
-            });
-            await setDoc(docRef, sanitized);
-            setConfig(DEFAULT_SITE_CONFIG);
-          } catch (seedErr) {
-            console.error('Failed to seed default config to Firestore:', seedErr);
-          }
-          setLoading(false);
-          isInitialRemoteLoadRef.current = false;
-        }
-      },
-      (error) => {
-        console.error('Firestore site_config real-time listener error:', error);
-        setSyncStatus('error');
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, []);
+  const isSavingRef = useRef(false);
 
   // Save to Central Firestore Database
   const persistToFirestore = useCallback(async (newConfig: SiteConfig) => {
     setSyncStatus('saving');
+    isSavingRef.current = true;
     try {
       const docRef = doc(db, COLLECTION_NAME, DOC_ID);
       const sanitized = sanitizeForFirestore({
         ...newConfig,
-        _lastUpdated: serverTimestamp(),
+        _lastUpdated: new Date().toISOString(),
+        _timestamp: Date.now(),
       });
       await setDoc(docRef, sanitized, { merge: true });
       
@@ -208,15 +166,17 @@ export function useSiteConfig() {
       setSyncStatus('synced');
       setHasSavedNotice(true);
       setTimeout(() => setHasSavedNotice(false), 2500);
+      isSavingRef.current = false;
       return { success: true };
     } catch (err: any) {
       console.error('Error saving site config to Firestore database:', err);
       setSyncStatus('error');
+      isSavingRef.current = false;
       return { success: false, error: err?.message || 'Database save failed' };
     }
   }, []);
 
-  // Queue debounced save to prevent write spam during rapid typing in admin inputs
+  // Queue debounced save to prevent write spam during rapid typing
   const triggerDebouncedSave = useCallback((newConfig: SiteConfig) => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -227,16 +187,78 @@ export function useSiteConfig() {
     }, 400);
   }, [persistToFirestore]);
 
-  const updateConfig = useCallback((updater: Partial<SiteConfig> | ((prev: SiteConfig) => SiteConfig), immediate = false) => {
-    setConfig((prev) => {
-      const next = typeof updater === 'function' ? updater(prev) : { ...prev, ...updater };
-      if (immediate) {
-        persistToFirestore(next);
-      } else {
-        triggerDebouncedSave(next);
+  // Real-time listener: Single Source of Truth in Firestore
+  useEffect(() => {
+    const docRef = doc(db, COLLECTION_NAME, DOC_ID);
+
+    const unsubscribe = onSnapshot(
+      docRef,
+      async (docSnap) => {
+        if (docSnap.exists()) {
+          const remoteData = docSnap.data();
+          const mergedConfig = mergeWithDefaults(remoteData);
+          
+          // Only update if not in the middle of local active saving
+          if (!isSavingRef.current) {
+            latestConfigRef.current = mergedConfig;
+            setConfig(mergedConfig);
+            try {
+              localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(mergedConfig));
+            } catch {
+              // ignore
+            }
+          }
+          setSyncStatus('synced');
+          setLoading(false);
+        } else {
+          // Document does not exist in Firestore yet -> seed with current config
+          try {
+            const initialData = latestConfigRef.current || DEFAULT_SITE_CONFIG;
+            const sanitized = sanitizeForFirestore({
+              ...initialData,
+              _createdAt: new Date().toISOString(),
+              _lastUpdated: new Date().toISOString(),
+            });
+            await setDoc(docRef, sanitized);
+            setConfig(initialData);
+          } catch (seedErr) {
+            console.error('Failed to seed config to Firestore:', seedErr);
+          }
+          setLoading(false);
+        }
+      },
+      (error) => {
+        console.error('Firestore site_config real-time listener error:', error);
+        setSyncStatus('error');
+        setLoading(false);
       }
-      return next;
-    });
+    );
+
+    return () => {
+      unsubscribe();
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  const updateConfig = useCallback((updater: Partial<SiteConfig> | ((prev: SiteConfig) => SiteConfig), immediate = false) => {
+    const prev = latestConfigRef.current;
+    const next = typeof updater === 'function' ? updater(prev) : { ...prev, ...updater };
+    latestConfigRef.current = next;
+    setConfig(next);
+    
+    try {
+      localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(next));
+    } catch {
+      // ignore
+    }
+
+    if (immediate) {
+      persistToFirestore(next);
+    } else {
+      triggerDebouncedSave(next);
+    }
   }, [persistToFirestore, triggerDebouncedSave]);
 
   const updateHero = useCallback((heroUpdates: Partial<SiteConfig['hero']>) => {

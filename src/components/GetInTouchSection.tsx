@@ -58,11 +58,11 @@ export const GetInTouchSection: React.FC<GetInTouchSectionProps> = ({ data }) =>
           </div>
 
           <h2 className="font-heading font-black text-4xl sm:text-6xl md:text-7xl text-white tracking-tight uppercase leading-none">
-            {t.contact.sectionTitle}
+            {data.sectionTitle || t.contact.sectionTitle}
           </h2>
 
           <p className="text-xs sm:text-sm md:text-base text-neutral-300 font-semibold tracking-wider uppercase mt-4 max-w-2xl mx-auto">
-            {t.contact.subtitle}
+            {data.subtitle || t.contact.subtitle}
           </p>
 
           <div className="w-24 h-1.5 bg-[#FFE600] mx-auto mt-5" />

@@ -48,11 +48,11 @@ export const MakeHealthierChoicesSection: React.FC<MakeHealthierChoicesSectionPr
           </div>
 
           <h2 className="font-heading font-black text-4xl sm:text-5xl md:text-6xl text-white tracking-tight uppercase">
-            {t.choices.sectionTitle}
+            {data.sectionTitle || t.choices.sectionTitle}
           </h2>
 
           <p className="text-xs sm:text-sm md:text-base text-neutral-400 font-semibold tracking-wider uppercase mt-3 max-w-2xl mx-auto">
-            {t.choices.subtitle}
+            {data.subtitle || t.choices.subtitle}
           </p>
 
           <div className="w-20 h-1 bg-[#FFE600] mx-auto mt-4" />
@@ -61,10 +61,13 @@ export const MakeHealthierChoicesSection: React.FC<MakeHealthierChoicesSectionPr
         {/* Three Feature Blocks Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {data.features.slice(0, 3).map((feature, idx) => {
-            const translated = t.choices.features[idx] || {
-              title: feature.title,
-              description: feature.description,
+            const fallback = t.choices.features[idx] || {
+              title: feature.title || `Feature 0${idx + 1}`,
+              description: feature.description || '',
             };
+
+            const featureTitle = feature.title || fallback.title;
+            const featureDesc = feature.description || fallback.description;
 
             return (
               <div
@@ -76,7 +79,7 @@ export const MakeHealthierChoicesSection: React.FC<MakeHealthierChoicesSectionPr
                   <div className="absolute inset-0 z-0 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
                     <img
                       src={feature.imageBg}
-                      alt={translated.title}
+                      alt={featureTitle}
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-[#111111]/80 to-transparent" />
@@ -96,12 +99,12 @@ export const MakeHealthierChoicesSection: React.FC<MakeHealthierChoicesSectionPr
 
                   {/* Feature Title */}
                   <h3 className="font-heading font-black text-2xl sm:text-3xl text-white tracking-wide uppercase mb-3 group-hover:text-[#FFE600] transition-colors">
-                    {translated.title}
+                    {featureTitle}
                   </h3>
 
                   {/* Feature Description */}
                   <p className="text-sm text-neutral-300 leading-relaxed font-normal">
-                    {translated.description}
+                    {featureDesc}
                   </p>
                 </div>
 

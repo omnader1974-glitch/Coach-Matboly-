@@ -56,24 +56,24 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ data, onJoinClick }) =
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-900/90 border border-[#FFE600]/40 text-[#FFE600] text-xs sm:text-sm font-bold tracking-widest uppercase mb-6 sm:mb-8 shadow-[0_0_15px_rgba(255,230,0,0.15)] animate-in fade-in duration-700">
           <span className="w-2 h-2 rounded-full bg-[#FFE600] animate-ping" />
-          <span>{t.hero.badge || data.badge}</span>
+          <span>{data.badge || t.hero.badge}</span>
         </div>
 
         {/* Coach Name Subheading */}
         <p className="font-heading font-bold text-xl sm:text-2xl md:text-3xl text-neutral-300 tracking-widest uppercase mb-2">
-          {t.hero.mainTitle}
+          {data.mainTitle || t.hero.mainTitle}
         </p>
 
         {/* Core Main Highlight Text: [ BE YOURSELF ] / [ اصنع نسختك الأقوى ] */}
         <h1 className="font-heading font-black text-5xl sm:text-7xl md:text-8xl lg:text-9xl text-white tracking-tight uppercase leading-[0.9] sm:leading-[0.88] my-3 select-none">
           <span className="text-[#FFE600] drop-shadow-[0_0_25px_rgba(255,230,0,0.4)]">
-            {t.hero.highlightText}
+            {data.highlightText || t.hero.highlightText}
           </span>
         </h1>
 
         {/* Subtitle / Ethos Statement */}
         <p className="max-w-2xl mx-auto text-xs sm:text-sm md:text-base font-semibold text-neutral-300 tracking-wider uppercase mt-4 mb-8 sm:mb-10 px-2 leading-relaxed">
-          {t.hero.subheadline}
+          {data.subheadline || t.hero.subheadline}
         </p>
 
         {/* Large Prominent Yellow CTA Button matching reference */}
@@ -82,7 +82,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ data, onJoinClick }) =
             onClick={onJoinClick}
             className="w-full sm:w-auto min-w-[240px] sm:min-w-[280px] bg-[#FFE600] hover:bg-[#fff033] active:scale-[0.98] text-black font-heading font-black text-2xl sm:text-3xl py-4 sm:py-5 px-8 sm:px-12 rounded-sm uppercase tracking-widest transition-all duration-200 shadow-[0_0_25px_rgba(255,230,0,0.5)] hover:shadow-[0_0_40px_rgba(255,230,0,0.75)] cursor-pointer group flex items-center justify-center gap-3"
           >
-            <span>{t.hero.buttonText}</span>
+            <span>{data.buttonText || t.hero.buttonText}</span>
             <span className={`text-xl sm:text-2xl transform transition-transform duration-200 ${isRTL ? 'group-hover:-translate-x-1.5' : 'group-hover:translate-x-1.5'}`}>
               {isRTL ? '←' : '→'}
             </span>

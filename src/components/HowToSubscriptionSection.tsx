@@ -13,12 +13,17 @@ const ReelCard: React.FC<{ reel: ReelVideoItem; index: number }> = ({ reel, inde
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasError, setHasError] = useState(false);
 
-  const translationReel = t.howTo.reels[index] || {
-    stepNumber: reel.stepNumber,
-    title: reel.title,
-    description: reel.description,
-    badge: reel.badge,
+  const fallbackTranslation = t.howTo.reels[index] || {
+    stepNumber: `0${index + 1}`,
+    title: `Phase 0${index + 1}`,
+    description: '',
+    badge: `STEP 0${index + 1}`,
   };
+
+  const reelTitle = reel.title || fallbackTranslation.title;
+  const reelDesc = reel.description || fallbackTranslation.description;
+  const reelBadge = reel.badge || fallbackTranslation.badge;
+  const reelStep = reel.stepNumber || fallbackTranslation.stepNumber;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -94,7 +99,7 @@ const ReelCard: React.FC<{ reel: ReelVideoItem; index: number }> = ({ reel, inde
           <div className="absolute inset-0 w-full h-full bg-neutral-900 flex items-center justify-center text-center p-2">
             <img
               src={reel.posterUrl || 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop'}
-              alt={translationReel.title}
+              alt={reelTitle}
               className="absolute inset-0 w-full h-full object-cover opacity-60"
             />
             <span className="relative z-10 text-[10px] text-neutral-300 font-medium">Reel Loading...</span>
@@ -108,7 +113,7 @@ const ReelCard: React.FC<{ reel: ReelVideoItem; index: number }> = ({ reel, inde
         <div className="relative z-10 p-2 sm:p-3 md:p-4 flex items-center justify-between gap-1">
           <div className="inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded bg-black/80 backdrop-blur-md border border-[#FFE600]/40 text-[#FFE600] font-heading font-black text-[9px] sm:text-xs tracking-wider uppercase shadow-md">
             <span className="w-1.5 h-1.5 rounded-full bg-[#FFE600] animate-pulse" />
-            <span className="truncate max-w-[65px] sm:max-w-none">{translationReel.badge || `STEP 0${index + 1}`}</span>
+            <span className="truncate max-w-[65px] sm:max-w-none">{reelBadge}</span>
           </div>
 
           <div className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded bg-black/70 backdrop-blur-md text-neutral-400 text-[8px] sm:text-[10px] font-bold uppercase tracking-wider">
@@ -120,7 +125,7 @@ const ReelCard: React.FC<{ reel: ReelVideoItem; index: number }> = ({ reel, inde
         {/* Central Step Number Watermark Accent */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none opacity-20 group-hover:opacity-35 transition-opacity">
           <span className="font-heading font-black text-5xl xs:text-6xl sm:text-8xl md:text-9xl text-stroke-yellow">
-            {translationReel.stepNumber || `0${index + 1}`}
+            {reelStep}
           </span>
         </div>
 
@@ -134,18 +139,18 @@ const ReelCard: React.FC<{ reel: ReelVideoItem; index: number }> = ({ reel, inde
           {/* Phase Pill */}
           <div className="flex items-center gap-1">
             <span className="font-heading font-black text-[10px] sm:text-xs md:text-sm text-[#FFE600] tracking-wider uppercase">
-              {t.howTo.phase} {translationReel.stepNumber || `0${index + 1}`}
+              {t.howTo.phase} {reelStep}
             </span>
           </div>
 
           {/* Title */}
           <h3 className="font-heading font-black text-xs xs:text-sm sm:text-lg md:text-xl lg:text-2xl text-white tracking-wide uppercase leading-tight group-hover:text-[#FFE600] transition-colors line-clamp-2">
-            {translationReel.title}
+            {reelTitle}
           </h3>
 
           {/* Description */}
           <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm text-neutral-300 line-clamp-2 sm:line-clamp-3 leading-tight sm:leading-relaxed font-medium">
-            {translationReel.description}
+            {reelDesc}
           </p>
         </div>
       </div>
@@ -172,11 +177,11 @@ export const HowToSubscriptionSection: React.FC<HowToSubscriptionSectionProps> =
           </div>
           
           <h2 className="font-heading font-black text-3xl xs:text-4xl sm:text-5xl md:text-6xl text-white tracking-tight uppercase">
-            {t.howTo.sectionTitle}
+            {data.sectionTitle || t.howTo.sectionTitle}
           </h2>
 
           <p className="text-xs sm:text-sm md:text-base text-neutral-400 font-semibold tracking-wider uppercase mt-2 sm:mt-3 max-w-2xl mx-auto">
-            {t.howTo.subtitle}
+            {data.subtitle || t.howTo.subtitle}
           </p>
 
           <div className="w-20 h-1 bg-[#FFE600] mx-auto mt-4" />

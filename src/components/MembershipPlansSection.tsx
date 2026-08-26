@@ -27,11 +27,11 @@ export const MembershipPlansSection: React.FC<MembershipPlansSectionProps> = ({ 
           </div>
 
           <h2 className="font-heading font-black text-4xl sm:text-5xl md:text-6xl text-white tracking-tight uppercase">
-            {t.plans.sectionTitle}
+            {data.sectionTitle || t.plans.sectionTitle}
           </h2>
 
           <p className="text-xs sm:text-sm md:text-base text-neutral-400 font-semibold tracking-wider uppercase mt-3 max-w-2xl mx-auto">
-            {t.plans.subtitle}
+            {data.subtitle || t.plans.subtitle}
           </p>
 
           <div className="w-20 h-1 bg-[#FFE600] mx-auto mt-4" />
@@ -41,15 +41,23 @@ export const MembershipPlansSection: React.FC<MembershipPlansSectionProps> = ({ 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-stretch max-w-5xl mx-auto">
           {displayPlans.map((plan, index) => {
             const isHighlighted = plan.isPopular;
-            const translatedPlan = t.plans.plans[index] || {
-              name: plan.name,
-              duration: plan.duration,
-              badgeText: plan.badgeText,
-              description: plan.description,
-              periodText: plan.periodText,
-              ctaText: plan.ctaText,
-              features: plan.features,
+            const fallbackPlan = t.plans.plans[index] || {
+              name: `Plan ${index + 1}`,
+              duration: '',
+              badgeText: '',
+              description: '',
+              periodText: 'One-time investment',
+              ctaText: 'Choose Plan',
+              features: [],
             };
+
+            const planName = plan.name || fallbackPlan.name;
+            const planDuration = plan.duration || fallbackPlan.duration;
+            const planBadge = plan.badgeText || fallbackPlan.badgeText;
+            const planDesc = plan.description || fallbackPlan.description;
+            const planPeriod = plan.periodText || fallbackPlan.periodText;
+            const planCta = plan.ctaText || fallbackPlan.ctaText;
+            const planFeatures = Array.isArray(plan.features) && plan.features.length > 0 ? plan.features : fallbackPlan.features;
 
             return (
               <div
@@ -61,7 +69,7 @@ export const MembershipPlansSection: React.FC<MembershipPlansSectionProps> = ({ 
                 }`}
               >
                 {/* Popular / Best Value Badge */}
-                {translatedPlan.badgeText && (
+                {planBadge && (
                   <div className={`absolute -top-3.5 ${isRTL ? 'right-8' : 'left-8'}`}>
                     <span
                       className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black tracking-widest uppercase shadow-md ${
@@ -71,7 +79,7 @@ export const MembershipPlansSection: React.FC<MembershipPlansSectionProps> = ({ 
                       }`}
                     >
                       <Flame className="w-3.5 h-3.5 fill-current" />
-                      {translatedPlan.badgeText}
+                      {planBadge}
                     </span>
                   </div>
                 )}
@@ -81,10 +89,10 @@ export const MembershipPlansSection: React.FC<MembershipPlansSectionProps> = ({ 
                   <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between pb-4 border-b border-neutral-800/80 pt-1">
                     <div>
                       <span className="text-xs font-bold tracking-widest text-[#FFE600] uppercase block">
-                        {translatedPlan.name}
+                        {planName}
                       </span>
                       <h3 className="font-heading font-black text-2xl sm:text-3xl text-white tracking-wide uppercase mt-1">
-                        {translatedPlan.duration}
+                        {planDuration}
                       </h3>
                     </div>
                     <div className="mt-2 sm:mt-0 text-left sm:text-right">
@@ -99,15 +107,15 @@ export const MembershipPlansSection: React.FC<MembershipPlansSectionProps> = ({ 
                         )}
                       </div>
                       <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">
-                        {translatedPlan.periodText}
+                        {planPeriod}
                       </p>
                     </div>
                   </div>
 
                   {/* Plan Description */}
-                  {translatedPlan.description && (
+                  {planDesc && (
                     <p className="text-sm text-neutral-300 mt-4 leading-relaxed">
-                      {translatedPlan.description}
+                      {planDesc}
                     </p>
                   )}
 
@@ -117,7 +125,7 @@ export const MembershipPlansSection: React.FC<MembershipPlansSectionProps> = ({ 
                       {t.plans.includedTitle}
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {translatedPlan.features.map((feature, fIdx) => (
+                      {planFeatures.map((feature, fIdx) => (
                         <div key={fIdx} className="flex items-start gap-2.5 text-xs sm:text-sm text-neutral-200">
                           <div className="w-4 h-4 rounded-full bg-[#FFE600]/20 flex items-center justify-center shrink-0 mt-0.5">
                             <Check className="w-3 h-3 text-[#FFE600] stroke-[3]" />
@@ -132,15 +140,15 @@ export const MembershipPlansSection: React.FC<MembershipPlansSectionProps> = ({ 
                 {/* Yellow CTA Button */}
                 <div className="pt-4 mt-auto border-t border-neutral-800/60">
                   <button
-                    onClick={() => onSelectPlan({ ...plan, name: translatedPlan.name, duration: translatedPlan.duration })}
+                    onClick={() => onSelectPlan({ ...plan, name: planName, duration: planDuration })}
                     className={`w-full py-4 px-6 rounded-sm font-heading font-black text-base sm:text-lg tracking-wider uppercase transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${
                       isHighlighted
                         ? 'bg-[#FFE600] hover:bg-[#fff033] active:scale-98 text-black shadow-[0_0_20px_rgba(255,230,0,0.35)]'
                         : 'bg-neutral-800 hover:bg-[#FFE600] active:scale-98 text-white hover:text-black border border-neutral-700 hover:border-[#FFE600]'
                     }`}
                   >
-                    <span>{translatedPlan.ctaText}</span>
-                    {isRTL ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                    <span>{planCta}</span>
+                    <span className="text-lg">{isRTL ? '←' : '→'}</span>
                   </button>
                 </div>
               </div>
