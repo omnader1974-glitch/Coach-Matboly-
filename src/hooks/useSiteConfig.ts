@@ -47,8 +47,26 @@ function mergeWithDefaults(data: any): SiteConfig {
     about: {
       ...DEFAULT_SITE_CONFIG.about,
       ...(data.about || {}),
-      paragraphs: Array.isArray(data.about?.paragraphs)
+      primaryPhoto:
+        data.about?.primaryPhoto ||
+        data.about?.primaryImage ||
+        DEFAULT_SITE_CONFIG.about.primaryPhoto,
+      primaryImage:
+        data.about?.primaryPhoto ||
+        data.about?.primaryImage ||
+        DEFAULT_SITE_CONFIG.about.primaryPhoto,
+      secondaryPhoto:
+        data.about?.secondaryPhoto ||
+        data.about?.secondaryImage ||
+        DEFAULT_SITE_CONFIG.about.secondaryPhoto,
+      secondaryImage:
+        data.about?.secondaryPhoto ||
+        data.about?.secondaryImage ||
+        DEFAULT_SITE_CONFIG.about.secondaryPhoto,
+      paragraphs: Array.isArray(data.about?.paragraphs) && data.about.paragraphs.length > 0
         ? data.about.paragraphs
+        : (data.about?.bioParagraph1 || data.about?.bioParagraph2)
+        ? [data.about.bioParagraph1, data.about.bioParagraph2].filter(Boolean)
         : DEFAULT_SITE_CONFIG.about.paragraphs,
       credentials: Array.isArray(data.about?.credentials)
         ? data.about.credentials
@@ -226,7 +244,20 @@ export function useSiteConfig() {
   }, [updateConfig]);
 
   const updateAbout = useCallback((aboutUpdates: Partial<SiteConfig['about']>) => {
-    updateConfig((prev) => ({ ...prev, about: { ...prev.about, ...aboutUpdates } }));
+    const normalized = { ...aboutUpdates };
+    if (normalized.primaryPhoto && !normalized.primaryImage) {
+      normalized.primaryImage = normalized.primaryPhoto;
+    }
+    if (normalized.primaryImage && !normalized.primaryPhoto) {
+      normalized.primaryPhoto = normalized.primaryImage;
+    }
+    if (normalized.secondaryPhoto && !normalized.secondaryImage) {
+      normalized.secondaryImage = normalized.secondaryPhoto;
+    }
+    if (normalized.secondaryImage && !normalized.secondaryPhoto) {
+      normalized.secondaryPhoto = normalized.secondaryImage;
+    }
+    updateConfig((prev) => ({ ...prev, about: { ...prev.about, ...normalized } }));
   }, [updateConfig]);
 
   const updateSubscription = useCallback((subUpdates: Partial<SiteConfig['subscription']>) => {

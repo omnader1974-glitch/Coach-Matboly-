@@ -29,6 +29,7 @@ import {
   UserCheck,
   AlertCircle,
   LogOut,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { SiteConfig, ReelVideoItem, MembershipPlan, HealthierChoiceFeature } from '../types/fitness';
 import { DEFAULT_SITE_CONFIG } from '../data/initialData';
@@ -927,51 +928,199 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
 
               {/* Coach Photos */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-black/60 p-4 border border-neutral-800 rounded-md space-y-2">
-                  <label className="block text-xs font-bold text-white">
-                    الصورة الرئيسية للكوتش (Primary Photo)
-                  </label>
-                  <input
-                    type="text"
-                    value={config.about.primaryImage}
-                    onChange={(e) => updateAbout({ primaryImage: e.target.value })}
-                    className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-1.5 text-xs text-white"
-                  />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileUpload(e, (dataUrl) => updateAbout({ primaryImage: dataUrl }))}
-                    className="text-xs text-neutral-400 file:py-1 file:px-2.5 file:rounded-sm file:border-0 file:text-xs file:font-bold file:bg-[#FFE600] file:text-black"
-                  />
-                  <img
-                    src={config.about.primaryImage}
-                    alt="Primary Coach"
-                    className="w-full h-40 object-cover rounded mt-2 border border-neutral-800"
-                  />
+              <div className="bg-black/80 p-5 border-2 border-neutral-800 hover:border-[#FFE600]/40 transition-colors rounded-lg space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-800 pb-3">
+                  <div>
+                    <h4 className="font-heading font-black text-lg text-[#FFE600] flex items-center gap-2">
+                      <ImageIcon className="w-5 h-5 text-[#FFE600]" />
+                      <span>صور كوتش مدبولي (COACH PHOTOS & IMAGES)</span>
+                    </h4>
+                    <p className="text-xs text-neutral-400 mt-0.5">
+                      يمكنك وضع رابط صورة مباشر (Direct Image URL) أو رفع صورة من جهازك. تُحفظ الصورة تلقائياً في السحابة وتظهر مباشرة لجميع الزوار.
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2.5 py-1 rounded-full font-medium self-start sm:self-auto">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    مزامنة فورية مع قاعدة البيانات
+                  </span>
                 </div>
 
-                <div className="bg-black/60 p-4 border border-neutral-800 rounded-md space-y-2">
-                  <label className="block text-xs font-bold text-white">
-                    الصورة الثانوية أثناء التدريب (Action Photo)
-                  </label>
-                  <input
-                    type="text"
-                    value={config.about.secondaryImage}
-                    onChange={(e) => updateAbout({ secondaryImage: e.target.value })}
-                    className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-1.5 text-xs text-white"
-                  />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileUpload(e, (dataUrl) => updateAbout({ secondaryImage: dataUrl }))}
-                    className="text-xs text-neutral-400 file:py-1 file:px-2.5 file:rounded-sm file:border-0 file:text-xs file:font-bold file:bg-[#FFE600] file:text-black"
-                  />
-                  <img
-                    src={config.about.secondaryImage}
-                    alt="Secondary Coach"
-                    className="w-full h-40 object-cover rounded mt-2 border border-neutral-800"
-                  />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Primary Coach Photo */}
+                  <div className="bg-neutral-900/70 p-4 border border-neutral-800 rounded-md space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-black text-white uppercase tracking-wider">
+                        1. الصورة الرئيسية للكوتش (Primary Photo)
+                      </label>
+                      <span className="text-[10px] text-[#FFE600] font-bold bg-[#FFE600]/10 px-2 py-0.5 rounded">
+                        الأساسية في واجهة القسم
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] text-neutral-300 font-medium mb-1">
+                        رابط الصورة المباشر (Direct Image URL):
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="url"
+                          value={config.about.primaryPhoto || config.about.primaryImage || ''}
+                          onChange={(e) => {
+                            const val = e.target.value.trim();
+                            updateAbout({ primaryPhoto: val, primaryImage: val });
+                          }}
+                          placeholder="https://i.postimg.cc/... أو https://images.unsplash.com/..."
+                          className="w-full bg-black border border-neutral-700 focus:border-[#FFE600] rounded-sm px-3 py-2 text-xs text-white font-mono placeholder:font-sans placeholder:text-neutral-500 focus:outline-none transition-colors"
+                        />
+                      </div>
+                      <p className="text-[10px] text-neutral-500 mt-1">
+                        الصق أي رابط مباشر (ينتهي بـ .png أو .jpg أو من مواقع مثل PostImg / Imgur / Unsplash / Cloudinary).
+                      </p>
+                    </div>
+
+                    <div className="pt-1">
+                      <label className="block text-[11px] text-neutral-400 font-medium mb-1">
+                        أو رفع صورة من جهازك:
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) =>
+                          handleFileUpload(e, (dataUrl) =>
+                            updateAbout({ primaryPhoto: dataUrl, primaryImage: dataUrl })
+                          )
+                        }
+                        className="text-xs text-neutral-400 file:mr-0 file:ml-3 file:py-1.5 file:px-3 file:rounded-sm file:border-0 file:text-xs file:font-bold file:bg-[#FFE600] file:text-black hover:file:bg-[#fff033] cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Image Preview */}
+                    <div className="pt-2">
+                      <div className="flex items-center justify-between text-[11px] text-neutral-400 mb-1.5">
+                        <span>معاينة الصورة المباشرة:</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const defaultUrl = 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop';
+                            updateAbout({ primaryPhoto: defaultUrl, primaryImage: defaultUrl });
+                          }}
+                          className="text-[10px] text-[#FFE600] hover:underline"
+                        >
+                          استعادة الصورة الافتراضية
+                        </button>
+                      </div>
+                      <div className="relative w-full h-56 bg-black rounded border border-neutral-800 overflow-hidden flex items-center justify-center group">
+                        {(config.about.primaryPhoto || config.about.primaryImage) ? (
+                          <img
+                            src={config.about.primaryPhoto || config.about.primaryImage}
+                            alt="Coach Matboly Preview"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                const errEl = parent.querySelector('.img-error-badge');
+                                if (errEl) (errEl as HTMLElement).style.display = 'flex';
+                              }
+                            }}
+                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="text-center p-4 text-neutral-500 text-xs">
+                            <ImageIcon className="w-8 h-8 mx-auto mb-1 text-neutral-600" />
+                            لا توجد صورة محددة حالياً
+                          </div>
+                        )}
+                        <div className="img-error-badge hidden absolute inset-0 bg-red-950/80 border border-red-800 p-4 flex-col items-center justify-center text-center text-xs text-red-200">
+                          <AlertCircle className="w-6 h-6 text-red-400 mb-1" />
+                          <span>تعذر تحميل الرابط - تأكد من صحة الرابط المباشر للصورة</span>
+                        </div>
+                        <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-0.5 rounded text-[10px] text-[#FFE600] font-bold">
+                          {config.about.coachName || 'كوتش مدبولي'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Secondary / Action Photo */}
+                  <div className="bg-neutral-900/70 p-4 border border-neutral-800 rounded-md space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-black text-white uppercase tracking-wider">
+                        2. الصورة الثانوية أثناء التدريب (Action Photo)
+                      </label>
+                      <span className="text-[10px] text-neutral-400 bg-neutral-800 px-2 py-0.5 rounded">
+                        صورة مصغرة إضافية
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] text-neutral-300 font-medium mb-1">
+                        رابط الصورة الثانوي المباشر (Direct URL):
+                      </label>
+                      <input
+                        type="url"
+                        value={config.about.secondaryPhoto || config.about.secondaryImage || ''}
+                        onChange={(e) => {
+                          const val = e.target.value.trim();
+                          updateAbout({ secondaryPhoto: val, secondaryImage: val });
+                        }}
+                        placeholder="https://images.unsplash.com/... أو أي رابط صورة"
+                        className="w-full bg-black border border-neutral-700 focus:border-[#FFE600] rounded-sm px-3 py-2 text-xs text-white font-mono placeholder:font-sans placeholder:text-neutral-500 focus:outline-none transition-colors"
+                      />
+                    </div>
+
+                    <div className="pt-1">
+                      <label className="block text-[11px] text-neutral-400 font-medium mb-1">
+                        أو رفع صورة من جهازك:
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) =>
+                          handleFileUpload(e, (dataUrl) =>
+                            updateAbout({ secondaryPhoto: dataUrl, secondaryImage: dataUrl })
+                          )
+                        }
+                        className="text-xs text-neutral-400 file:mr-0 file:ml-3 file:py-1.5 file:px-3 file:rounded-sm file:border-0 file:text-xs file:font-bold file:bg-[#FFE600] file:text-black hover:file:bg-[#fff033] cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Secondary Preview */}
+                    <div className="pt-2">
+                      <div className="flex items-center justify-between text-[11px] text-neutral-400 mb-1.5">
+                        <span>معاينة الصورة الثانوية:</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updateAbout({ secondaryPhoto: '', secondaryImage: '' });
+                          }}
+                          className="text-[10px] text-neutral-400 hover:text-red-400 hover:underline"
+                        >
+                          إزالة الصورة الثانوية
+                        </button>
+                      </div>
+                      <div className="relative w-full h-56 bg-black rounded border border-neutral-800 overflow-hidden flex items-center justify-center group">
+                        {(config.about.secondaryPhoto || config.about.secondaryImage) ? (
+                          <img
+                            src={config.about.secondaryPhoto || config.about.secondaryImage}
+                            alt="Secondary Action Preview"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              target.style.display = 'none';
+                            }}
+                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="text-center p-4 text-neutral-500 text-xs">
+                            <ImageIcon className="w-8 h-8 mx-auto mb-1 text-neutral-600" />
+                            لا توجد صورة ثانوية (اختياري)
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

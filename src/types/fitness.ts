@@ -18,12 +18,17 @@ export interface CoachStat {
 export interface AboutCoachData {
   sectionTitle: string;
   coachName: string;
+  coachTitle?: string;
   subtitle: string;
   paragraphs: string[];
+  bioParagraph1?: string;
+  bioParagraph2?: string;
   credentials: string[];
   stats: CoachStat[];
   primaryPhoto: string;
+  primaryImage?: string;
   secondaryPhoto?: string;
+  secondaryImage?: string;
   signatureText?: string;
 }
 

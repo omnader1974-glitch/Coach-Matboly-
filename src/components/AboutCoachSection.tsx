@@ -11,6 +11,26 @@ interface AboutCoachSectionProps {
 export const AboutCoachSection: React.FC<AboutCoachSectionProps> = ({ data, onJoinClick }) => {
   const { t, isRTL } = useLanguage();
 
+  const coachPhotoSrc =
+    data.primaryPhoto ||
+    data.primaryImage ||
+    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop';
+
+  const secondaryPhotoSrc = data.secondaryPhoto || data.secondaryImage;
+  const coachDisplayName = data.coachName || t.about.coachName;
+
+  const displayParagraphs =
+    data.paragraphs && data.paragraphs.length > 0
+      ? data.paragraphs
+      : (data.bioParagraph1 || data.bioParagraph2)
+      ? [data.bioParagraph1, data.bioParagraph2].filter(Boolean) as string[]
+      : t.about.paragraphs;
+
+  const displayCredentials =
+    data.credentials && data.credentials.length > 0 ? data.credentials : t.about.credentials;
+
+  const displayStats = data.stats && data.stats.length > 0 ? data.stats : t.about.stats;
+
   return (
     <section id="about-coach" className="relative py-20 sm:py-28 bg-[#0e0e0e] border-t border-b border-neutral-800/80 overflow-hidden">
       {/* Subtle background decoration */}
@@ -25,10 +45,10 @@ export const AboutCoachSection: React.FC<AboutCoachSectionProps> = ({ data, onJo
             <span>{t.about.badge}</span>
           </div>
           <h2 className="font-heading font-black text-4xl sm:text-5xl md:text-6xl text-white tracking-tight uppercase">
-            {t.about.sectionTitle}
+            {data.sectionTitle || t.about.sectionTitle}
           </h2>
           <p className="font-heading text-sm sm:text-base md:text-lg text-[#FFE600] font-bold tracking-widest uppercase mt-2">
-            {t.about.subtitle}
+            {data.subtitle || t.about.subtitle}
           </p>
           <div className="w-20 h-1 bg-[#FFE600] mx-auto mt-4" />
         </div>
@@ -44,20 +64,28 @@ export const AboutCoachSection: React.FC<AboutCoachSectionProps> = ({ data, onJo
               {/* Primary Image Container */}
               <div className="relative z-10 bg-neutral-900 overflow-hidden rounded-sm shadow-2xl aspect-[4/5]">
                 <img
-                  src={data.primaryPhoto}
-                  alt={t.about.coachName}
+                  src={coachPhotoSrc}
+                  alt={coachDisplayName}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    // Fallback to default high quality fitness coach portrait if link fails
+                    const target = e.currentTarget;
+                    if (target.src !== 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop') {
+                      target.src = 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop';
+                    }
+                  }}
                   className="w-full h-full object-cover object-center filter grayscale-[15%] contrast-110 group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                 
                 {/* Bottom Photo Overlay Tag */}
                 <div className="absolute bottom-4 left-4 right-4 bg-black/85 backdrop-blur-sm border border-neutral-800 p-3.5 rounded-sm flex items-center justify-between">
                   <div>
                     <p className="font-heading font-black text-lg text-white uppercase tracking-wider">
-                      {t.about.coachName}
+                      {coachDisplayName}
                     </p>
                     <p className="text-[11px] font-bold tracking-widest text-[#FFE600] uppercase">
-                      {t.about.tagCoach}
+                      {data.coachTitle || t.about.tagCoach}
                     </p>
                   </div>
                   <div className="w-9 h-9 bg-[#FFE600] flex items-center justify-center rounded-sm text-black font-black">
@@ -67,11 +95,18 @@ export const AboutCoachSection: React.FC<AboutCoachSectionProps> = ({ data, onJo
               </div>
 
               {/* Secondary floating thumbnail if available */}
-              {data.secondaryPhoto && (
-                <div className={`hidden sm:block absolute -bottom-6 ${isRTL ? '-left-6' : '-right-6'} z-20 w-36 h-44 bg-black p-1 rounded-sm border-2 border-neutral-700 shadow-2xl`}>
+              {secondaryPhotoSrc && (
+                <div className={`hidden sm:block absolute -bottom-6 ${isRTL ? '-left-6' : '-right-6'} z-20 w-36 h-44 bg-black p-1 rounded-sm border-2 border-neutral-700 shadow-2xl overflow-hidden`}>
                   <img
-                    src={data.secondaryPhoto}
+                    src={secondaryPhotoSrc}
                     alt="Coaching session"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (target.src !== 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=800&auto=format&fit=crop') {
+                        target.src = 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=800&auto=format&fit=crop';
+                      }
+                    }}
                     className="w-full h-full object-cover rounded-xs"
                   />
                 </div>
@@ -83,7 +118,7 @@ export const AboutCoachSection: React.FC<AboutCoachSectionProps> = ({ data, onJo
           <div className="lg:col-span-7 flex flex-col justify-center space-y-6">
             {/* Bio Paragraphs */}
             <div className="space-y-4 text-neutral-300 text-sm sm:text-base leading-relaxed">
-              {t.about.paragraphs.map((p, idx) => (
+              {displayParagraphs.map((p, idx) => (
                 <p key={idx} className="font-normal">
                   {p}
                 </p>
@@ -97,7 +132,7 @@ export const AboutCoachSection: React.FC<AboutCoachSectionProps> = ({ data, onJo
                 <span>{t.about.qualificationsTitle}</span>
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                {t.about.credentials.map((cred, idx) => (
+                {displayCredentials.map((cred, idx) => (
                   <div key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-neutral-200 font-medium">
                     <CheckCircle2 className="w-4 h-4 text-[#FFE600] shrink-0 mt-0.5" />
                     <span>{cred}</span>
@@ -108,7 +143,7 @@ export const AboutCoachSection: React.FC<AboutCoachSectionProps> = ({ data, onJo
 
             {/* Stats Metrics Row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-              {t.about.stats.map((stat, idx) => (
+              {displayStats.map((stat, idx) => (
                 <div
                   key={idx}
                   className="bg-black border border-neutral-800/90 p-3.5 sm:p-4 rounded-sm text-center hover:border-[#FFE600]/50 transition-colors"
