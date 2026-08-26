@@ -265,21 +265,21 @@ export function useSiteConfig() {
     updateConfig((prev) => ({ ...prev, hero: { ...prev.hero, ...heroUpdates } }));
   }, [updateConfig]);
 
-  const updateAbout = useCallback((aboutUpdates: Partial<SiteConfig['about']>) => {
+  const updateAbout = useCallback((aboutUpdates: Partial<SiteConfig['about']>, immediate = false) => {
     const normalized = { ...aboutUpdates };
-    if (normalized.primaryPhoto && !normalized.primaryImage) {
+    if (normalized.primaryPhoto !== undefined && normalized.primaryImage === undefined) {
       normalized.primaryImage = normalized.primaryPhoto;
     }
-    if (normalized.primaryImage && !normalized.primaryPhoto) {
+    if (normalized.primaryImage !== undefined && normalized.primaryPhoto === undefined) {
       normalized.primaryPhoto = normalized.primaryImage;
     }
-    if (normalized.secondaryPhoto && !normalized.secondaryImage) {
+    if (normalized.secondaryPhoto !== undefined && normalized.secondaryImage === undefined) {
       normalized.secondaryImage = normalized.secondaryPhoto;
     }
-    if (normalized.secondaryImage && !normalized.secondaryPhoto) {
+    if (normalized.secondaryImage !== undefined && normalized.secondaryPhoto === undefined) {
       normalized.secondaryPhoto = normalized.secondaryImage;
     }
-    updateConfig((prev) => ({ ...prev, about: { ...prev.about, ...normalized } }));
+    updateConfig((prev) => ({ ...prev, about: { ...prev.about, ...normalized } }), immediate);
   }, [updateConfig]);
 
   const updateSubscription = useCallback((subUpdates: Partial<SiteConfig['subscription']>) => {
