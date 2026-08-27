@@ -31,8 +31,9 @@ import {
   LogOut,
   Image as ImageIcon,
   Save,
+  Trophy,
 } from 'lucide-react';
-import { SiteConfig, ReelVideoItem, MembershipPlan, HealthierChoiceFeature } from '../types/fitness';
+import { SiteConfig, ReelVideoItem, MembershipPlan, HealthierChoiceFeature, TransformationItem, TransformationsData } from '../types/fitness';
 import { DEFAULT_SITE_CONFIG } from '../data/initialData';
 import { CustomerRegistration } from '../types/customer';
 
@@ -47,7 +48,8 @@ interface AdminDashboardProps {
   updateAbout: (updates: Partial<SiteConfig['about']>) => void;
   updateSubscription: (updates: Partial<SiteConfig['subscription']>) => void;
   updatePlans: (updates: Partial<SiteConfig['plans']>) => void;
-  updateChoices: (updates: Partial<SiteConfig['choices']>) => void;
+  updateTransformations?: (updates: Partial<SiteConfig['transformations']>, immediate?: boolean) => void;
+  updateChoices?: (updates: Partial<SiteConfig['choices']>) => void;
   updateContact: (updates: Partial<SiteConfig['contact']>) => void;
   updateFooter: (updates: Partial<SiteConfig['footer']>) => void;
   resetToDefaults: () => void;
@@ -58,7 +60,7 @@ interface AdminDashboardProps {
   deleteCustomer: (customerId: string) => Promise<{ success: boolean }>;
 }
 
-type TabType = 'customers' | 'hero' | 'about' | 'reels' | 'plans' | 'choices' | 'contact' | 'footer' | 'backup';
+type TabType = 'customers' | 'hero' | 'about' | 'reels' | 'plans' | 'transformations' | 'choices' | 'contact' | 'footer' | 'backup';
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   isOpen,
@@ -71,6 +73,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   updateAbout,
   updateSubscription,
   updatePlans,
+  updateTransformations,
   updateChoices,
   updateContact,
   updateFooter,
@@ -84,6 +87,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<TabType>('customers');
   const [saveToast, setSaveToast] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
+  const [confirmDeleteTransId, setConfirmDeleteTransId] = useState<string | null>(null);
 
   // Customer Management Search & Filter states
   const [customerSearch, setCustomerSearch] = useState('');
@@ -270,11 +274,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="flex items-center gap-1 px-4 py-2 bg-[#161616] border-b border-neutral-800 overflow-x-auto scrollbar-none">
           {[
             { id: 'customers', label: `العملاء والاشتراكات (${customers.length})`, icon: Users, isHighlight: true },
+            { id: 'transformations', label: `قصص التحول (${config.transformations?.items?.length || 0})`, icon: Trophy, isHighlight: true },
             { id: 'reels', label: 'فيديوهات الريلز (Reels)', icon: Film },
             { id: 'plans', label: 'باقات الاشتراك والأسعار', icon: DollarSign },
             { id: 'hero', label: 'الواجهة الرئيسية (Hero)', icon: Sparkles },
             { id: 'about', label: 'عن كوتش مدبولي (About)', icon: User },
-            { id: 'choices', label: 'خيارات صحية أفضل', icon: HeartPulse },
             { id: 'contact', label: 'التواصل والسوشيال ميديا', icon: Share2 },
             { id: 'footer', label: 'الفوتر والسياسات', icon: FileText },
             { id: 'backup', label: 'النسخ والضبط', icon: RotateCcw },
@@ -1710,102 +1714,530 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
-          {/* TAB 5: HEALTHIER CHOICE SECTION */}
-          {activeTab === 'choices' && (
-            <div className="space-y-6 max-w-4xl">
-              <div className="bg-neutral-900/60 p-4 border border-neutral-800 rounded-md">
-                <h3 className="font-heading font-black text-xl text-white mb-1">
-                  قسم خيارات صحية أفضل (MAKE A HEALTHIER CHOICE)
-                </h3>
-                <p className="text-xs text-neutral-400">
-                  تعديل كروت الركائز الصحية والتدريبية ومميزات برنامج الكوتش.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* TAB: TRANSFORMATIONS SECTION (قصص التحول) */}
+          {(activeTab === 'transformations' || activeTab === 'choices') && (
+            <div className="space-y-6 max-w-5xl">
+              {/* Top Banner & Actions */}
+              <div className="bg-neutral-900/80 border border-neutral-800 rounded-lg p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-neutral-300 mb-1">
-                    عنوان القسم (Section Title)
-                  </label>
-                  <input
-                    type="text"
-                    value={config.choices.sectionTitle}
-                    onChange={(e) => updateChoices({ sectionTitle: e.target.value })}
-                    className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-2 text-sm text-white focus:border-[#FFE600] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-neutral-300 mb-1">
-                    العنوان الفرعي (Subtitle)
-                  </label>
-                  <input
-                    type="text"
-                    value={config.choices.subtitle}
-                    onChange={(e) => updateChoices({ subtitle: e.target.value })}
-                    className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-2 text-sm text-white focus:border-[#FFE600] focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {config.choices.features.map((feature, idx) => (
-                  <div key={feature.id} className="bg-black/60 border border-neutral-800 p-4 rounded-md space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#FFE600] text-black text-xs font-bold flex items-center justify-center">
-                          {idx + 1}
-                        </span>
-                        <h4 className="font-bold text-white text-sm">{feature.title}</h4>
-                      </div>
-                      <span className="text-xs text-neutral-400 font-mono">{feature.highlightNumber}</span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[11px] text-neutral-400 mb-1">عنوان الميزة</label>
-                        <input
-                          type="text"
-                          value={feature.title}
-                          onChange={(e) => {
-                            const next = [...config.choices.features];
-                            next[idx] = { ...next[idx], title: e.target.value };
-                            updateChoices({ features: next });
-                          }}
-                          className="w-full bg-black border border-neutral-700 rounded px-3 py-1.5 text-xs text-white"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] text-neutral-400 mb-1">الرقم التعريفي (Highlight Number)</label>
-                        <input
-                          type="text"
-                          value={feature.highlightNumber || ''}
-                          onChange={(e) => {
-                            const next = [...config.choices.features];
-                            next[idx] = { ...next[idx], highlightNumber: e.target.value };
-                            updateChoices({ features: next });
-                          }}
-                          className="w-full bg-black border border-neutral-700 rounded px-3 py-1.5 text-xs text-white"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] text-neutral-400 mb-1">الشرح والتفاصيل</label>
-                      <textarea
-                        rows={2}
-                        value={feature.description}
-                        onChange={(e) => {
-                          const next = [...config.choices.features];
-                          next[idx] = { ...next[idx], description: e.target.value };
-                          updateChoices({ features: next });
-                        }}
-                        className="w-full bg-black border border-neutral-700 rounded px-3 py-1.5 text-xs text-white"
-                      />
-                    </div>
+                  <div className="flex items-center gap-2 text-[#FFE600] font-heading font-black text-xl">
+                    <Trophy className="w-6 h-6" />
+                    <span>إدارة قصص التحول (TRANSFORMATIONS)</span>
                   </div>
-                ))}
+                  <p className="text-xs text-neutral-300 mt-1 max-w-2xl">
+                    تحكم كامل في قسم التحولات. أضف صور التحول باستخدام رابط الصورة المباشر فقط (Direct Image URL) بدون الحاجة لرفع صور من الجهاز. تعرض التحولات كـ شريط متحرك بانورامي مستمر كامل العرض على الموقع، ويتم حفظ جميع التعديلات سحابياً في Firestore.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentItems = Array.isArray(config.transformations?.items) ? config.transformations.items : [];
+                      const newItem: TransformationItem = {
+                        id: `trans-${Date.now()}`,
+                        name: 'بطل جديد',
+                        duration: '90 يوم',
+                        weightChange: '-15 كجم',
+                        tag: 'تنشيف وبناء عضل',
+                        description: 'خطة تدريب وتغذية مخصصة حقق من خلالها تحولاً جذرياً في نسبة الدهون وزيادة الكتلة العضلية.',
+                        beforeImageUrl: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=800&auto=format&fit=crop',
+                        afterImageUrl: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=800&auto=format&fit=crop',
+                        imageUrl: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=800&auto=format&fit=crop',
+                      };
+                      if (updateTransformations) {
+                        updateTransformations({ items: [newItem, ...currentItems] }, true);
+                      }
+                      setSaveToast(true);
+                      setTimeout(() => setSaveToast(false), 3000);
+                    }}
+                    className="inline-flex items-center gap-1.5 bg-[#FFE600] hover:bg-[#ffe100] text-black font-black text-xs px-4 py-2 rounded-sm shadow-md transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>إضافة قصة تحول جديدة</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (updateTransformations) {
+                        updateTransformations({ ...config.transformations }, true);
+                      }
+                      setSaveToast(true);
+                      setTimeout(() => setSaveToast(false), 3000);
+                    }}
+                    className="inline-flex items-center gap-1.5 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-white font-bold text-xs px-3.5 py-2 rounded-sm transition-all cursor-pointer"
+                    title="تأكيد وحفظ التغييرات السحابية"
+                  >
+                    <Save className="w-4 h-4 text-[#FFE600]" />
+                    <span>حفظ وتطبيق فوراً</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Section Header Controls */}
+              <div className="bg-black/60 border border-neutral-800 rounded-lg p-4 sm:p-5 space-y-4">
+                <h4 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2 border-b border-neutral-800 pb-2">
+                  <Sparkles className="w-4 h-4 text-[#FFE600]" />
+                  <span>عناوين ونصوص القسم الرئيسية (Section Headings)</span>
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-300 mb-1">
+                      شارة القسم (Badge Text)
+                    </label>
+                    <input
+                      type="text"
+                      value={config.transformations?.badge || ''}
+                      onChange={(e) => {
+                        if (updateTransformations) {
+                          updateTransformations({ badge: e.target.value });
+                        }
+                      }}
+                      placeholder="TRANSFORMATION STORIES • قبل وبعد"
+                      className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-2 text-xs text-white focus:border-[#FFE600] focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-300 mb-1">
+                      عنوان القسم الرئيسي (Section Title) *
+                    </label>
+                    <input
+                      type="text"
+                      value={config.transformations?.sectionTitle || ''}
+                      onChange={(e) => {
+                        if (updateTransformations) {
+                          updateTransformations({ sectionTitle: e.target.value });
+                        }
+                      }}
+                      placeholder="قصص ونتائج التحول الحقيقية"
+                      className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-2 text-xs text-white focus:border-[#FFE600] focus:outline-none font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-300 mb-1">
+                      العنوان الفرعي (Subtitle)
+                    </label>
+                    <input
+                      type="text"
+                      value={config.transformations?.subtitle || ''}
+                      onChange={(e) => {
+                        if (updateTransformations) {
+                          updateTransformations({ subtitle: e.target.value });
+                        }
+                      }}
+                      placeholder="شاهد التغييرات المذهلة للأبطال..."
+                      className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-2 text-xs text-white focus:border-[#FFE600] focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Transformations Items List */}
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-white">قائمة قصص التحول المسجلة</span>
+                    <span className="bg-[#FFE600]/20 text-[#FFE600] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#FFE600]/30">
+                      {config.transformations?.items?.length || 0} حالة
+                    </span>
+                  </div>
+                  <span className="text-xs text-neutral-400">
+                    صيغة العرض: 1200 × 675 (16:9) مقارنة قبل وبعد • الحذف والتعديل يُحفظ مباشرة في قاعدة البيانات
+                  </span>
+                </div>
+
+                {(!config.transformations?.items || config.transformations.items.length === 0) ? (
+                  <div className="text-center py-12 bg-neutral-900/40 border border-dashed border-neutral-800 rounded-lg p-6">
+                    <Trophy className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
+                    <p className="text-sm text-neutral-400 font-bold">لا توجد قصص تحول مسجلة حالياً</p>
+                    <p className="text-xs text-neutral-500 mt-1 mb-4">اضغط على زر إضافة قصة تحول جديدة لبدء إضافة صور الأبطال بروابط مباشرة</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newItem: TransformationItem = {
+                          id: `trans-${Date.now()}`,
+                          name: 'أحمد كمال',
+                          duration: '90 يوم',
+                          weightChange: '-18 كجم دهون',
+                          tag: 'تنشيف وبناء عضل صافي',
+                          description: 'تحول كامل من نسبة دهون 28% إلى 11% مع بناء كتلة عضلية واضحة وتقسيم عضلات البطن.',
+                          beforeImageUrl: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=800&auto=format&fit=crop',
+                          afterImageUrl: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=800&auto=format&fit=crop',
+                          imageUrl: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=800&auto=format&fit=crop',
+                        };
+                        if (updateTransformations) {
+                          updateTransformations({ items: [newItem] }, true);
+                        }
+                        setSaveToast(true);
+                        setTimeout(() => setSaveToast(false), 2500);
+                      }}
+                      className="inline-flex items-center gap-1.5 bg-[#FFE600] text-black font-bold text-xs px-4 py-2 rounded-sm cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>إضافة قصة تحول نموذجية</span>
+                    </button>
+                  </div>
+                ) : (
+                  config.transformations.items.map((item, idx) => {
+                    const itemId = item.id || `trans-item-${idx}`;
+                    const isConfirmingDelete = confirmDeleteTransId === itemId;
+                    const beforeImg = item.beforeImageUrl || item.imageUrl || '';
+                    const afterImg = item.afterImageUrl || item.imageUrl || '';
+
+                    return (
+                      <div
+                        key={itemId}
+                        className="bg-[#141414] border border-neutral-800 hover:border-neutral-700 rounded-lg p-4 sm:p-5 space-y-4 transition-all"
+                      >
+                        {/* Card Top Action Bar */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-800/80 pb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-full bg-[#FFE600] text-black text-xs font-black flex items-center justify-center">
+                              {idx + 1}
+                            </span>
+                            <h4 className="font-heading font-black text-white text-base">
+                              {item.name || `قصة تحول #${idx + 1}`}
+                            </h4>
+                            {item.tag && (
+                              <span className="text-[10px] bg-neutral-800 text-[#FFE600] px-2 py-0.5 rounded border border-neutral-700">
+                                {item.tag}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Card Controls: Reorder & Delete (with inline non-blocking confirmation) */}
+                          <div className="flex items-center gap-2">
+                            {isConfirmingDelete ? (
+                              <div className="flex items-center gap-1.5 bg-red-950/80 border border-red-800 p-1 rounded">
+                                <span className="text-[11px] text-red-200 font-bold px-1">تأكيد حذف هذه القصة؟</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (!config.transformations?.items) return;
+                                    const next = config.transformations.items.filter((_, i) => i !== idx);
+                                    if (updateTransformations) {
+                                      updateTransformations({ items: next }, true);
+                                    }
+                                    setConfirmDeleteTransId(null);
+                                    setSaveToast(true);
+                                    setTimeout(() => setSaveToast(false), 2500);
+                                  }}
+                                  className="px-2 py-1 bg-red-600 hover:bg-red-500 text-white font-black text-[11px] rounded cursor-pointer"
+                                >
+                                  نعم، احذف نهائياً
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirmDeleteTransId(null)}
+                                  className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-[11px] rounded cursor-pointer"
+                                >
+                                  إلغاء
+                                </button>
+                              </div>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={() => {
+                                    if (idx === 0 || !config.transformations?.items) return;
+                                    const next = [...config.transformations.items];
+                                    const temp = next[idx - 1];
+                                    next[idx - 1] = next[idx];
+                                    next[idx] = temp;
+                                    if (updateTransformations) updateTransformations({ items: next }, true);
+                                    setSaveToast(true);
+                                    setTimeout(() => setSaveToast(false), 2000);
+                                  }}
+                                  className="p-1.5 bg-neutral-900 border border-neutral-700 hover:border-neutral-500 text-neutral-300 disabled:opacity-30 rounded cursor-pointer"
+                                  title="تحريك لأعلى"
+                                >
+                                  <ArrowRight className="w-3.5 h-3.5 rotate-90" />
+                                </button>
+
+                                <button
+                                  type="button"
+                                  disabled={idx === (config.transformations?.items?.length || 1) - 1}
+                                  onClick={() => {
+                                    if (!config.transformations?.items || idx === config.transformations.items.length - 1) return;
+                                    const next = [...config.transformations.items];
+                                    const temp = next[idx + 1];
+                                    next[idx + 1] = next[idx];
+                                    next[idx] = temp;
+                                    if (updateTransformations) updateTransformations({ items: next }, true);
+                                    setSaveToast(true);
+                                    setTimeout(() => setSaveToast(false), 2000);
+                                  }}
+                                  className="p-1.5 bg-neutral-900 border border-neutral-700 hover:border-neutral-500 text-neutral-300 disabled:opacity-30 rounded cursor-pointer"
+                                  title="تحريك لأسفل"
+                                >
+                                  <ArrowLeft className="w-3.5 h-3.5 rotate-90" />
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setConfirmDeleteTransId(itemId);
+                                  }}
+                                  className="px-2.5 py-1.5 bg-red-950/70 border border-red-800 hover:bg-red-900 text-red-300 hover:text-white rounded text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                  title="حذف هذه القصة نهائياً من قاعدة البيانات"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <span>حذف</span>
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 1200 x 675 (16:9) Before & After Image URL Inputs + Live Preview */}
+                        <div className="bg-black/80 border border-neutral-800 p-3.5 rounded-lg space-y-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-neutral-800/80 pb-2">
+                            <label className="text-xs font-bold text-[#FFE600] flex items-center gap-1.5">
+                              <ImageIcon className="w-4 h-4 text-[#FFE600]" />
+                              <span>صور المقارنة قبل وبعد بتنسيق 1200 × 675 (16:9 Format) *</span>
+                            </label>
+                            <span className="text-[10px] text-neutral-400">
+                              روابط مباشرة من الإنترنت (Unsplash, Imgur, Cloudinary, إلخ)
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {/* BEFORE Image URL Input */}
+                            <div>
+                              <label className="block text-[11px] font-bold text-neutral-300 mb-1 flex items-center gap-1">
+                                <span className="w-2 h-2 rounded-full bg-neutral-400" />
+                                <span>رابط صورة قبل التحول (BEFORE Photo URL - Left Side)</span>
+                              </label>
+                              <input
+                                type="url"
+                                value={item.beforeImageUrl || ''}
+                                onChange={(e) => {
+                                  if (!config.transformations?.items) return;
+                                  const next = [...config.transformations.items];
+                                  next[idx] = { ...next[idx], beforeImageUrl: e.target.value };
+                                  if (updateTransformations) updateTransformations({ items: next });
+                                }}
+                                placeholder="https://... (الصق رابط صورة قبل التحول المباشر)"
+                                className="w-full bg-[#111] border border-neutral-700 rounded px-3 py-2 text-xs text-white font-mono focus:border-[#FFE600] focus:outline-none"
+                              />
+                            </div>
+
+                            {/* AFTER Image URL Input */}
+                            <div>
+                              <label className="block text-[11px] font-bold text-[#FFE600] mb-1 flex items-center gap-1">
+                                <span className="w-2 h-2 rounded-full bg-[#FFE600]" />
+                                <span>رابط صورة بعد التحول (AFTER Photo URL - Right Side)</span>
+                              </label>
+                              <input
+                                type="url"
+                                value={item.afterImageUrl || ''}
+                                onChange={(e) => {
+                                  if (!config.transformations?.items) return;
+                                  const next = [...config.transformations.items];
+                                  next[idx] = { ...next[idx], afterImageUrl: e.target.value };
+                                  if (updateTransformations) updateTransformations({ items: next });
+                                }}
+                                placeholder="https://... (الصق رابط صورة بعد التحول المباشر)"
+                                className="w-full bg-[#111] border border-neutral-700 rounded px-3 py-2 text-xs text-white font-mono focus:border-[#FFE600] focus:outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Live 1200 x 675 (16:9) Split Preview Box */}
+                          <div className="pt-2">
+                            <span className="text-[10px] font-bold text-neutral-400 block mb-1.5">
+                              معاينة حية لتنسيق قبل وبعد 16:9 (Live Comparison Preview):
+                            </span>
+                            <div className="relative w-full max-w-lg aspect-[16/9] bg-neutral-950 border border-neutral-700 rounded-md overflow-hidden flex items-stretch mx-auto">
+                              {/* Left BEFORE */}
+                              <div className="w-1/2 h-full relative overflow-hidden bg-neutral-900 border-r border-neutral-800">
+                                {beforeImg ? (
+                                  <img
+                                    src={beforeImg}
+                                    alt="Before Preview"
+                                    className="w-full h-full object-cover object-center"
+                                    referrerPolicy="no-referrer"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=800&auto=format&fit=crop';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center text-neutral-500">
+                                    <ImageIcon className="w-6 h-6 mb-1" />
+                                    <span className="text-[9px]">صورة قبل (BEFORE)</span>
+                                  </div>
+                                )}
+                                <span className="absolute top-2 start-2 bg-black/85 text-neutral-200 text-[9px] font-black px-1.5 py-0.5 rounded border border-neutral-700 uppercase">
+                                  BEFORE • قبل
+                                </span>
+                              </div>
+
+                              {/* Right AFTER */}
+                              <div className="w-1/2 h-full relative overflow-hidden bg-neutral-900">
+                                {afterImg ? (
+                                  <img
+                                    src={afterImg}
+                                    alt="After Preview"
+                                    className="w-full h-full object-cover object-center"
+                                    referrerPolicy="no-referrer"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=800&auto=format&fit=crop';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center text-neutral-500">
+                                    <ImageIcon className="w-6 h-6 mb-1" />
+                                    <span className="text-[9px]">صورة بعد (AFTER)</span>
+                                  </div>
+                                )}
+                                <span className="absolute top-2 end-2 bg-[#FFE600] text-black text-[9px] font-black px-1.5 py-0.5 rounded uppercase font-heading">
+                                  AFTER • بعد
+                                </span>
+                              </div>
+
+                              {/* Center Divider & VS Badge */}
+                              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[2px] bg-[#FFE600] pointer-events-none" />
+                              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black border border-[#FFE600] text-[#FFE600] text-[8px] font-black flex items-center justify-center pointer-events-none font-heading">
+                                VS
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Fields: Name, Duration, Weight Change / Result, Tag */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-bold text-neutral-300 mb-1">
+                              اسم البطل / المتدرب (Name) *
+                            </label>
+                            <input
+                              type="text"
+                              value={item.name}
+                              onChange={(e) => {
+                                if (!config.transformations?.items) return;
+                                const next = [...config.transformations.items];
+                                next[idx] = { ...next[idx], name: e.target.value };
+                                if (updateTransformations) updateTransformations({ items: next });
+                              }}
+                              placeholder="مثال: أحمد كمال"
+                              className="w-full bg-black border border-neutral-700 rounded px-2.5 py-1.5 text-xs text-white font-bold"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-neutral-300 mb-1">
+                              المدة الزمنية (Duration)
+                            </label>
+                            <input
+                              type="text"
+                              value={item.duration || ''}
+                              onChange={(e) => {
+                                if (!config.transformations?.items) return;
+                                const next = [...config.transformations.items];
+                                next[idx] = { ...next[idx], duration: e.target.value };
+                                if (updateTransformations) updateTransformations({ items: next });
+                              }}
+                              placeholder="مثال: 90 يوم / 3 شهور"
+                              className="w-full bg-black border border-neutral-700 rounded px-2.5 py-1.5 text-xs text-[#FFE600] font-bold"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-neutral-300 mb-1">
+                              النتيجة المحققة (Result)
+                            </label>
+                            <input
+                              type="text"
+                              value={item.weightChange || ''}
+                              onChange={(e) => {
+                                if (!config.transformations?.items) return;
+                                const next = [...config.transformations.items];
+                                next[idx] = { ...next[idx], weightChange: e.target.value };
+                                if (updateTransformations) updateTransformations({ items: next });
+                              }}
+                              placeholder="مثال: -18 كجم دهون / +6 كجم عضل"
+                              className="w-full bg-black border border-neutral-700 rounded px-2.5 py-1.5 text-xs text-white"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-neutral-300 mb-1">
+                              نوع التحول (Tag / Category)
+                            </label>
+                            <input
+                              type="text"
+                              value={item.tag || ''}
+                              onChange={(e) => {
+                                if (!config.transformations?.items) return;
+                                const next = [...config.transformations.items];
+                                next[idx] = { ...next[idx], tag: e.target.value };
+                                if (updateTransformations) updateTransformations({ items: next });
+                              }}
+                              placeholder="مثال: تنشيف وتقسيم عضلات"
+                              className="w-full bg-black border border-neutral-700 rounded px-2.5 py-1.5 text-xs text-white"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Detailed Description */}
+                        <div>
+                          <label className="block text-[11px] font-bold text-neutral-300 mb-1">
+                            وصف وتفاصيل قصة التحول (Description) *
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={item.description}
+                            onChange={(e) => {
+                              if (!config.transformations?.items) return;
+                              const next = [...config.transformations.items];
+                              next[idx] = { ...next[idx], description: e.target.value };
+                              if (updateTransformations) updateTransformations({ items: next });
+                            }}
+                            placeholder="اكتب تفاصيل التغيير والالتزام والنتائج التي حققها المتدرب..."
+                            className="w-full bg-black border border-neutral-700 rounded px-3 py-2 text-xs text-white leading-relaxed focus:border-[#FFE600] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+
+                {/* Additional Add Button at bottom for convenience */}
+                {config.transformations?.items && config.transformations.items.length > 0 && (
+                  <div className="pt-2 text-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentItems = config.transformations?.items || [];
+                        const newItem: TransformationItem = {
+                          id: `trans-${Date.now()}`,
+                          name: '',
+                          duration: '90 يوم',
+                          weightChange: '-12 كجم',
+                          tag: 'تنشيف وبناء عضل',
+                          description: '',
+                          beforeImageUrl: '',
+                          afterImageUrl: '',
+                          imageUrl: '',
+                        };
+                        if (updateTransformations) {
+                          updateTransformations({ items: [...currentItems, newItem] }, true);
+                        }
+                        setSaveToast(true);
+                        setTimeout(() => setSaveToast(false), 2500);
+                      }}
+                      className="inline-flex items-center gap-2 bg-[#FFE600] hover:bg-[#ffe100] text-black font-black text-xs px-6 py-2.5 rounded-sm shadow-md transition-all cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>إضافة قصة تحول أخرى (Add Another Transformation)</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}

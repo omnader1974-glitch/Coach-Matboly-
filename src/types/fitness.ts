@@ -69,6 +69,25 @@ export interface MembershipPlansData {
   plans: MembershipPlan[];
 }
 
+export interface TransformationItem {
+  id: string;
+  name: string;
+  description: string;
+  duration?: string;
+  weightChange?: string;
+  beforeImageUrl?: string;
+  afterImageUrl?: string;
+  imageUrl?: string;
+  tag?: string;
+}
+
+export interface TransformationsData {
+  sectionTitle: string;
+  subtitle: string;
+  badge?: string;
+  items: TransformationItem[];
+}
+
 export interface HealthierChoiceFeature {
   id: string;
   iconName: 'dumbbell' | 'apple' | 'flame' | 'activity' | 'shield' | 'target' | 'heart' | 'zap';
@@ -117,7 +136,8 @@ export interface SiteConfig {
   about: AboutCoachData;
   subscription: HowToSubscriptionData;
   plans: MembershipPlansData;
-  choices: HealthierChoicesData;
+  transformations: TransformationsData;
+  choices?: HealthierChoicesData;
   contact: GetInTouchData;
   footer: FooterData;
 }

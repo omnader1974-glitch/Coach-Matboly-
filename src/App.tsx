@@ -11,7 +11,7 @@ import { HeroSection } from './components/HeroSection';
 import { AboutCoachSection } from './components/AboutCoachSection';
 import { HowToSubscriptionSection } from './components/HowToSubscriptionSection';
 import { MembershipPlansSection } from './components/MembershipPlansSection';
-import { MakeHealthierChoicesSection } from './components/MakeHealthierChoicesSection';
+import { TransformationsSection } from './components/TransformationsSection';
 import { GetInTouchSection } from './components/GetInTouchSection';
 import { FooterSection } from './components/FooterSection';
 import { AdminDashboard } from './components/AdminDashboard';
@@ -31,6 +31,7 @@ export default function App() {
     updateAbout,
     updateSubscription,
     updatePlans,
+    updateTransformations,
     updateChoices,
     updateContact,
     updateFooter,
@@ -132,9 +133,9 @@ export default function App() {
           onSelectPlan={handleSelectPlan}
         />
 
-        {/* 5. MAKE HEALTHIER CHOICES */}
-        <MakeHealthierChoicesSection
-          data={config.choices}
+        {/* 5. CLIENT TRANSFORMATIONS (Full-Width Animated Scrolling Banner) */}
+        <TransformationsSection
+          data={config.transformations}
           onJoinClick={() => handleOpenCheckout()}
         />
 
@@ -170,6 +171,7 @@ export default function App() {
         updateAbout={updateAbout}
         updateSubscription={updateSubscription}
         updatePlans={updatePlans}
+        updateTransformations={updateTransformations}
         updateChoices={updateChoices}
         updateContact={updateContact}
         updateFooter={updateFooter}

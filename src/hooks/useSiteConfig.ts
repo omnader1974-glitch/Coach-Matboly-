@@ -77,21 +77,28 @@ function mergeWithDefaults(data: any): SiteConfig {
     subscription: {
       ...DEFAULT_SITE_CONFIG.subscription,
       ...(data.subscription || {}),
-      reels: Array.isArray(data.subscription?.reels) && data.subscription.reels.length > 0
+      reels: Array.isArray(data.subscription?.reels)
         ? data.subscription.reels
         : DEFAULT_SITE_CONFIG.subscription.reels,
     },
     plans: {
       ...DEFAULT_SITE_CONFIG.plans,
       ...(data.plans || {}),
-      plans: Array.isArray(data.plans?.plans) && data.plans.plans.length > 0
+      plans: Array.isArray(data.plans?.plans)
         ? data.plans.plans
         : DEFAULT_SITE_CONFIG.plans.plans,
+    },
+    transformations: {
+      ...DEFAULT_SITE_CONFIG.transformations,
+      ...(data.transformations || {}),
+      items: Array.isArray(data.transformations?.items)
+        ? data.transformations.items
+        : DEFAULT_SITE_CONFIG.transformations.items,
     },
     choices: {
       ...DEFAULT_SITE_CONFIG.choices,
       ...(data.choices || {}),
-      features: Array.isArray(data.choices?.features) && data.choices.features.length > 0
+      features: Array.isArray(data.choices?.features)
         ? data.choices.features
         : DEFAULT_SITE_CONFIG.choices.features,
     },
@@ -290,6 +297,10 @@ export function useSiteConfig() {
     updateConfig((prev) => ({ ...prev, plans: { ...prev.plans, ...plansUpdates } }));
   }, [updateConfig]);
 
+  const updateTransformations = useCallback((transformationsUpdates: Partial<SiteConfig['transformations']>, immediate = false) => {
+    updateConfig((prev) => ({ ...prev, transformations: { ...prev.transformations, ...transformationsUpdates } }), immediate);
+  }, [updateConfig]);
+
   const updateChoices = useCallback((choicesUpdates: Partial<SiteConfig['choices']>) => {
     updateConfig((prev) => ({ ...prev, choices: { ...prev.choices, ...choicesUpdates } }));
   }, [updateConfig]);
@@ -338,6 +349,7 @@ export function useSiteConfig() {
     updateAbout,
     updateSubscription,
     updatePlans,
+    updateTransformations,
     updateChoices,
     updateContact,
     updateFooter,

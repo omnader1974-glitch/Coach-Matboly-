@@ -25,7 +25,7 @@ export const Navbar: React.FC<NavbarProps> = ({ config, onOpenCheckout }) => {
     { label: t.nav.about, href: '#about-coach' },
     { label: t.nav.howTo, href: '#how-to-subscription' },
     { label: t.nav.memberships, href: '#membership-plans' },
-    { label: t.nav.whyUs, href: '#healthier-choices' },
+    { label: t.nav.transformations || t.nav.whyUs, href: '#transformations' },
     { label: t.nav.contact, href: '#get-in-touch' },
   ];
 

@@ -15,6 +15,7 @@ export interface Translations {
     about: string;
     howTo: string;
     memberships: string;
+    transformations: string;
     whyUs: string;
     contact: string;
     joinToday: string;
@@ -66,6 +67,16 @@ export interface Translations {
     guaranteeTitle: string;
     guaranteeText: string;
     plans: PlanTranslationItem[];
+  };
+  transformations: {
+    badge: string;
+    sectionTitle: string;
+    subtitle: string;
+    ctaBtn: string;
+    verified: string;
+    timeline: string;
+    result: string;
+    hoverHint: string;
   };
   choices: {
     badge: string;
@@ -181,7 +192,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       about: 'من نحن',
       howTo: 'كيفية الاشتراك',
       memberships: 'الباقات والاشتراكات',
-      whyUs: 'لماذا نحن',
+      transformations: 'قصص التحول',
+      whyUs: 'قصص التحول',
       contact: 'تواصل معنا',
       joinToday: 'اشترك الآن',
       switchLangTooltip: 'تغيير اللغة إلى English',
@@ -323,6 +335,16 @@ export const TRANSLATIONS: Record<Language, Translations> = {
           ],
         },
       ],
+    },
+    transformations: {
+      badge: 'قصص ونتائج قبل وبعد • REAL RESULTS',
+      sectionTitle: 'قصص ونتائج التحول الحقيقية',
+      subtitle: 'شاهد التغييرات المذهلة للأبطال الذين التزموا بخطط وبرامج كوتش مدبولي المخصصة وحققوا نتائج قياسية',
+      ctaBtn: 'ابدأ قصة تحولك الآن مع كوتش مدبولي',
+      verified: 'نتيجة حقيقية وموثقة',
+      timeline: 'المدة الزمنية',
+      result: 'النتيجة المحققة',
+      hoverHint: 'مرر الماوس أو المس البطاقة لإيقاف الحركة والقراءة بالتفصيل',
     },
     choices: {
       badge: 'معادلة النجاح والتطور',
@@ -495,7 +517,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       about: 'ABOUT',
       howTo: 'HOW TO SUBSCRIBE',
       memberships: 'MEMBERSHIPS',
-      whyUs: 'WHY US',
+      transformations: 'TRANSFORMATIONS',
+      whyUs: 'TRANSFORMATIONS',
       contact: 'CONTACT',
       joinToday: 'JOIN TODAY',
       switchLangTooltip: 'Switch language to العربية',
@@ -637,6 +660,16 @@ export const TRANSLATIONS: Record<Language, Translations> = {
           ],
         },
       ],
+    },
+    transformations: {
+      badge: 'PROVEN CLIENT RESULTS • BEFORE & AFTER',
+      sectionTitle: 'REAL CLIENT TRANSFORMATIONS',
+      subtitle: 'EXPLORE THE REMARKABLE RESULTS OF DEDICATED ATHLETES WHO COMMITTED TO COACH MATBOLY CUSTOM PROTOCOLS',
+      ctaBtn: 'START YOUR TRANSFORMATION WITH COACH MATBOLY',
+      verified: 'Verified Transformation',
+      timeline: 'Timeline',
+      result: 'Result',
+      hoverHint: 'Hover or touch any card to pause animation and view details',
     },
     choices: {
       badge: 'THE WINNING FORMULA',
