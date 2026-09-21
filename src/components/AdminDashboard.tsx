@@ -33,9 +33,19 @@ import {
   Save,
   Trophy,
 } from 'lucide-react';
-import { SiteConfig, ReelVideoItem, MembershipPlan, HealthierChoiceFeature, TransformationItem, TransformationsData } from '../types/fitness';
+import { SiteConfig, ReelVideoItem, MembershipPlan, HealthierChoiceFeature, TransformationItem, TransformationsData, PlanDurationPrice } from '../types/fitness';
 import { DEFAULT_SITE_CONFIG } from '../data/initialData';
 import { CustomerRegistration } from '../types/customer';
+import {
+  getDefaultDurationPrices,
+  getPlanCalculatedDurations,
+  calculateDurationDiscount,
+  getPlanOneMonthPrice,
+  formatCurrency,
+  getDurationLabel,
+  normalizePlan,
+} from '../lib/planPricing';
+import { PlanDurationPricingEditor } from './PlanDurationPricingEditor';
 
 interface AdminDashboardProps {
   isOpen: boolean;
@@ -49,6 +59,7 @@ interface AdminDashboardProps {
   updateSubscription: (updates: Partial<SiteConfig['subscription']>) => void;
   updatePlans: (updates: Partial<SiteConfig['plans']>) => void;
   updateTransformations?: (updates: Partial<SiteConfig['transformations']>, immediate?: boolean) => void;
+  deleteTransformation?: (targetIdOrIndex: string | number) => Promise<{ success: boolean; error?: string }>;
   updateChoices?: (updates: Partial<SiteConfig['choices']>) => void;
   updateContact: (updates: Partial<SiteConfig['contact']>) => void;
   updateFooter: (updates: Partial<SiteConfig['footer']>) => void;
@@ -74,6 +85,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   updateSubscription,
   updatePlans,
   updateTransformations,
+  deleteTransformation,
   updateChoices,
   updateContact,
   updateFooter,
@@ -88,6 +100,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [saveToast, setSaveToast] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [confirmDeleteTransId, setConfirmDeleteTransId] = useState<string | null>(null);
+  const [isDeletingTransId, setIsDeletingTransId] = useState<string | null>(null);
 
   // Customer Management Search & Filter states
   const [customerSearch, setCustomerSearch] = useState('');
@@ -1445,22 +1458,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <button
                     type="button"
                     onClick={() => {
+                      const defaultDurations = getDefaultDurationPrices(500);
                       const newPlan: MembershipPlan = {
                         id: `plan-${Date.now()}`,
                         name: 'VIP PROTOCOL',
-                        duration: '24 WEEKS',
-                        price: '$499',
-                        originalPrice: '$699',
-                        periodText: 'HALF YEAR ACCESS',
-                        description: 'Ultimate body transformation package with direct access.',
+                        duration: '3 MONTHS',
+                        price: '1,200 EGP',
+                        originalPrice: '1,500 EGP',
+                        currency: 'EGP',
+                        periodText: 'TOTAL ACCESS',
+                        description: 'خطة تدريب وتغذية متكاملة تشمل تدريب مخصص ومتابعة دورية مباشرة مع كوتش مدبولي.',
                         features: [
-                          'Custom Nutrition & Calorie Tracking',
-                          'Bi-weekly Video Form Analysis',
-                          'Direct WhatsApp Priority Line',
-                          'Supplement Optimization Protocol',
+                          'جدول تدريبي مخصص يتجدد أسبوعياً حسب مستواك',
+                          'خطة تغذية محسوبة السعرات والماكروز بمرونة كاملة',
+                          'متابعة أسبوعية مباشرة عبر واتساب للصور والقياسات',
+                          'تصحيح تكنيك وفيديوهات الأداء الحركي',
                         ],
                         ctaText: 'JOIN PLAN',
                         ctaLink: '#contact',
+                        durationPrices: defaultDurations,
+                        defaultDurationMonths: 3,
                       };
                       updatePlans({ plans: [...config.plans.plans, newPlan] });
                     }}
@@ -1570,7 +1587,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div>
+                      <div className="sm:col-span-2">
                         <label className="block text-[11px] font-bold text-neutral-300 mb-1">
                           اسم الباقة (Plan Name)
                         </label>
@@ -1583,22 +1600,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             updatePlans({ plans: next });
                           }}
                           className="w-full bg-black border border-neutral-700 rounded px-2.5 py-1.5 text-xs text-white"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-bold text-neutral-300 mb-1">
-                          مدة الباقة (Duration)
-                        </label>
-                        <input
-                          type="text"
-                          value={plan.duration}
-                          onChange={(e) => {
-                            const next = [...config.plans.plans];
-                            next[idx] = { ...next[idx], duration: e.target.value };
-                            updatePlans({ plans: next });
-                          }}
-                          className="w-full bg-black border border-neutral-700 rounded px-2.5 py-1.5 text-xs text-white font-bold text-[#FFE600]"
                         />
                       </div>
 
@@ -1620,73 +1621,52 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-[11px] font-bold text-[#FFE600] mb-1">
-                          السعر الحالي (Price)
-                        </label>
-                        <input
-                          type="text"
-                          value={plan.price}
-                          onChange={(e) => {
-                            const next = [...config.plans.plans];
-                            next[idx] = { ...next[idx], price: e.target.value };
-                            updatePlans({ plans: next });
-                          }}
-                          className="w-full bg-black border border-neutral-700 rounded px-2.5 py-1.5 text-xs text-[#FFE600] font-bold"
-                          placeholder="$199"
-                        />
-                      </div>
+                    {/* DURATION PRICING & AUTOMATIC DISCOUNT MATRIX */}
+                    <div>
+                      <PlanDurationPricingEditor
+                        plan={plan}
+                        onChangePlan={(updated) => {
+                          const next = [...config.plans.plans];
+                          next[idx] = updated;
+                          updatePlans({ plans: next });
+                        }}
+                        isRTL={true}
+                      />
+                    </div>
 
-                      <div>
-                        <label className="block text-[11px] font-bold text-neutral-400 mb-1">
-                          السعر قبل الخصم (Original Price)
-                        </label>
-                        <input
-                          type="text"
-                          value={plan.originalPrice || ''}
-                          onChange={(e) => {
-                            const next = [...config.plans.plans];
-                            next[idx] = { ...next[idx], originalPrice: e.target.value };
-                            updatePlans({ plans: next });
-                          }}
-                          className="w-full bg-black border border-neutral-700 rounded px-2.5 py-1.5 text-xs text-neutral-400 line-through"
-                          placeholder="$299"
-                        />
-                      </div>
-
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[11px] font-bold text-neutral-300 mb-1">
-                          نص المدة (Period Text)
+                          نص الملاحظة أو الميزة الرئيسية (Period / Access Text)
                         </label>
                         <input
                           type="text"
-                          value={plan.periodText}
+                          value={plan.periodText || ''}
                           onChange={(e) => {
                             const next = [...config.plans.plans];
                             next[idx] = { ...next[idx], periodText: e.target.value };
                             updatePlans({ plans: next });
                           }}
                           className="w-full bg-black border border-neutral-700 rounded px-2.5 py-1.5 text-xs text-white"
-                          placeholder="FULL 12-WEEK ACCESS"
+                          placeholder="FULL ACCESS / تجديد دوري"
                         />
                       </div>
-                    </div>
 
-                    <div>
-                      <label className="block text-[11px] font-bold text-neutral-300 mb-1">
-                        وصف الباقة (Description)
-                      </label>
-                      <input
-                        type="text"
-                        value={plan.description}
-                        onChange={(e) => {
-                          const next = [...config.plans.plans];
-                          next[idx] = { ...next[idx], description: e.target.value };
-                          updatePlans({ plans: next });
-                        }}
-                        className="w-full bg-black border border-neutral-700 rounded px-2.5 py-1.5 text-xs text-white"
-                      />
+                      <div>
+                        <label className="block text-[11px] font-bold text-neutral-300 mb-1">
+                          وصف الباقة العام (Description)
+                        </label>
+                        <input
+                          type="text"
+                          value={plan.description}
+                          onChange={(e) => {
+                            const next = [...config.plans.plans];
+                            next[idx] = { ...next[idx], description: e.target.value };
+                            updatePlans({ plans: next });
+                          }}
+                          className="w-full bg-black border border-neutral-700 rounded px-2.5 py-1.5 text-xs text-white"
+                        />
+                      </div>
                     </div>
 
                     {/* Plan Features Checklist */}
@@ -1909,31 +1889,55 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             )}
                           </div>
 
-                          {/* Card Controls: Reorder & Delete (with inline non-blocking confirmation) */}
+                          {/* Card Controls: Reorder & Delete */}
                           <div className="flex items-center gap-2">
                             {isConfirmingDelete ? (
-                              <div className="flex items-center gap-1.5 bg-red-950/80 border border-red-800 p-1 rounded">
-                                <span className="text-[11px] text-red-200 font-bold px-1">تأكيد حذف هذه القصة؟</span>
+                              <div className="flex items-center gap-2 bg-red-950/90 border border-red-700 p-1.5 rounded shadow-lg animate-in fade-in duration-200">
+                                <span className="text-[11px] text-red-200 font-bold px-1 flex items-center gap-1">
+                                  <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                                  <span>تأكيد الحذف النهائي؟</span>
+                                </span>
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    if (!config.transformations?.items) return;
-                                    const next = config.transformations.items.filter((_, i) => i !== idx);
-                                    if (updateTransformations) {
-                                      updateTransformations({ items: next }, true);
+                                  disabled={isDeletingTransId === itemId}
+                                  onClick={async () => {
+                                    setIsDeletingTransId(itemId);
+                                    try {
+                                      if (deleteTransformation) {
+                                        const res = await deleteTransformation(item.id || idx);
+                                        if (res.success) {
+                                          setSaveToast(true);
+                                          setTimeout(() => setSaveToast(false), 2500);
+                                        }
+                                      } else if (config.transformations?.items) {
+                                        const next = config.transformations.items.filter((_, i) => i !== idx);
+                                        if (updateTransformations) {
+                                          updateTransformations({ items: next }, true);
+                                        }
+                                        setSaveToast(true);
+                                        setTimeout(() => setSaveToast(false), 2500);
+                                      }
+                                    } finally {
+                                      setIsDeletingTransId(null);
+                                      setConfirmDeleteTransId(null);
                                     }
-                                    setConfirmDeleteTransId(null);
-                                    setSaveToast(true);
-                                    setTimeout(() => setSaveToast(false), 2500);
                                   }}
-                                  className="px-2 py-1 bg-red-600 hover:bg-red-500 text-white font-black text-[11px] rounded cursor-pointer"
+                                  className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white font-black text-xs rounded cursor-pointer disabled:opacity-50 transition-colors shadow flex items-center gap-1"
                                 >
-                                  نعم، احذف نهائياً
+                                  {isDeletingTransId === itemId ? (
+                                    <>
+                                      <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                      <span>جارٍ الحذف...</span>
+                                    </>
+                                  ) : (
+                                    <span>نعم، احذف نهائياً</span>
+                                  )}
                                 </button>
                                 <button
                                   type="button"
+                                  disabled={isDeletingTransId === itemId}
                                   onClick={() => setConfirmDeleteTransId(null)}
-                                  className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-[11px] rounded cursor-pointer"
+                                  className="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs rounded cursor-pointer transition-colors"
                                 >
                                   إلغاء
                                 </button>
@@ -1983,11 +1987,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   onClick={() => {
                                     setConfirmDeleteTransId(itemId);
                                   }}
-                                  className="px-2.5 py-1.5 bg-red-950/70 border border-red-800 hover:bg-red-900 text-red-300 hover:text-white rounded text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                                  title="حذف هذه القصة نهائياً من قاعدة البيانات"
+                                  className="px-3 py-1.5 bg-red-950/80 border border-red-800 hover:bg-red-900 text-red-200 hover:text-white rounded text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all shadow-sm active:scale-95"
+                                  title="حذف هذه القصة نهائياً من قاعدة البيانات والموقع"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                  <span>حذف</span>
+                                  <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                                  <span>حذف القصة</span>
                                 </button>
                               </>
                             )}
@@ -2051,9 +2055,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           {/* Live 1200 x 675 (16:9) Split Preview Box */}
                           <div className="pt-2">
                             <span className="text-[10px] font-bold text-neutral-400 block mb-1.5">
-                              معاينة حية لتنسيق قبل وبعد 16:9 (Live Comparison Preview):
+                              معاينة حية لتنسيق قبل وبعد 16:9 (Live Comparison Preview - اليسار قبل واليمين بعد):
                             </span>
-                            <div className="relative w-full max-w-lg aspect-[16/9] bg-neutral-950 border border-neutral-700 rounded-md overflow-hidden flex items-stretch mx-auto">
+                            <div dir="ltr" className="relative w-full max-w-lg aspect-[16/9] bg-neutral-950 border border-neutral-700 rounded-md overflow-hidden flex items-stretch mx-auto select-none">
                               {/* Left BEFORE */}
                               <div className="w-1/2 h-full relative overflow-hidden bg-neutral-900 border-r border-neutral-800">
                                 {beforeImg ? (
@@ -2072,7 +2076,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     <span className="text-[9px]">صورة قبل (BEFORE)</span>
                                   </div>
                                 )}
-                                <span className="absolute top-2 start-2 bg-black/85 text-neutral-200 text-[9px] font-black px-1.5 py-0.5 rounded border border-neutral-700 uppercase">
+                                <span className="absolute top-2 left-2 bg-black/85 text-neutral-200 text-[9px] font-black px-1.5 py-0.5 rounded border border-neutral-700 uppercase">
                                   BEFORE • قبل
                                 </span>
                               </div>
@@ -2095,7 +2099,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     <span className="text-[9px]">صورة بعد (AFTER)</span>
                                   </div>
                                 )}
-                                <span className="absolute top-2 end-2 bg-[#FFE600] text-black text-[9px] font-black px-1.5 py-0.5 rounded uppercase font-heading">
+                                <span className="absolute top-2 right-2 bg-[#FFE600] text-black text-[9px] font-black px-1.5 py-0.5 rounded uppercase font-heading">
                                   AFTER • بعد
                                 </span>
                               </div>

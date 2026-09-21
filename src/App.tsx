@@ -32,6 +32,7 @@ export default function App() {
     updateSubscription,
     updatePlans,
     updateTransformations,
+    deleteTransformation,
     updateChoices,
     updateContact,
     updateFooter,
@@ -172,6 +173,7 @@ export default function App() {
         updateSubscription={updateSubscription}
         updatePlans={updatePlans}
         updateTransformations={updateTransformations}
+        deleteTransformation={deleteTransformation}
         updateChoices={updateChoices}
         updateContact={updateContact}
         updateFooter={updateFooter}

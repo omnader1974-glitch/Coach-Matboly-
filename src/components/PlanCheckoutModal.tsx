@@ -4,6 +4,7 @@ import { SiteConfig } from '../types/fitness';
 import { COUNTRIES, DEFAULT_COUNTRY, CountryItem } from '../data/countries';
 import { CustomerRegistration } from '../types/customer';
 import { useLanguage } from '../context/LanguageContext';
+import { getPlanCalculatedDurations } from '../lib/planPricing';
 
 interface PlanCheckoutModalProps {
   isOpen: boolean;
@@ -23,6 +24,8 @@ export const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({
   const { t, isRTL, language } = useLanguage();
   const plans = config.plans.plans;
   const [activePlanId, setActivePlanId] = useState<string>(selectedPlanId || plans[1]?.id || plans[0]?.id);
+  const [selectedDurationIndex, setSelectedDurationIndex] = useState(0);
+
   const [name, setName] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<CountryItem>(DEFAULT_COUNTRY);
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -46,16 +49,28 @@ export const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   const currentPlanIndex = plans.findIndex((p) => p.id === activePlanId);
   const currentPlan = plans[currentPlanIndex >= 0 ? currentPlanIndex : 0] || plans[0];
   const translatedPlan = t.plans.plans[currentPlanIndex >= 0 ? currentPlanIndex : 0] || {
-    name: currentPlan.name,
-    duration: currentPlan.duration,
-    badgeText: currentPlan.badgeText,
-    periodText: currentPlan.periodText,
+    name: currentPlan?.name || 'Selected Plan',
+    duration: currentPlan?.duration || '',
+    badgeText: currentPlan?.badgeText || '',
+    periodText: currentPlan?.periodText || '',
   };
+
+  const calculatedDurations = currentPlan ? getPlanCalculatedDurations(currentPlan, isRTL) : [];
+
+  // Reset duration index when switching plan
+  useEffect(() => {
+    if (calculatedDurations.length > 0) {
+      const defaultIdx = calculatedDurations.findIndex((d) => d.isDefault);
+      setSelectedDurationIndex(defaultIdx >= 0 ? defaultIdx : Math.min(2, calculatedDurations.length - 1));
+    }
+  }, [activePlanId]);
+
+  if (!isOpen || !currentPlan) return null;
+
+  const activeDuration = calculatedDurations[selectedDurationIndex] || calculatedDurations[0];
 
   const filteredCountries = COUNTRIES.filter(
     (c) =>
@@ -76,6 +91,9 @@ export const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({
     setIsSubmitting(true);
 
     const fullPhone = formatCleanInternationalNumber();
+    const durationLabel = activeDuration?.displayLabel || currentPlan.duration;
+    const priceDisplay = activeDuration?.formattedSellingPrice || currentPlan.price;
+    const discountInfo = activeDuration?.hasDiscount ? ` (${activeDuration.discountBadge})` : '';
 
     // 1. Save customer to persistent Firestore Database
     await onSaveCustomer({
@@ -88,8 +106,8 @@ export const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({
       email: email.trim() ? email.trim() : '',
       selectedPlanId: currentPlan.id,
       selectedPlanName: currentPlan.name,
-      selectedPlanDuration: currentPlan.duration,
-      selectedPlanPrice: currentPlan.price,
+      selectedPlanDuration: durationLabel,
+      selectedPlanPrice: `${priceDisplay}${discountInfo}`,
       trainingExperience: experience,
       fitnessGoal,
       notes: '',
@@ -101,7 +119,7 @@ export const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({
     // 2. Open Coach's WhatsApp with registration details pre-filled
     const coachPhone = (config.contact.whatsappNumber || '+201000000000').replace(/[^0-9]/g, '');
     const waMessage = encodeURIComponent(
-      `Hello Coach Matboly! 🏋️‍♂️\nI have just registered on your website for the [${translatedPlan.name} - ${translatedPlan.duration}] plan (${currentPlan.price}).\n\n📌 Details:\n- Name: ${name}\n- Phone: ${fullPhone}\n- Country: ${selectedCountry.flag} ${language === 'ar' ? selectedCountry.nameAr : selectedCountry.name}\n- Experience: ${experience}\n- Goal: ${fitnessGoal}\n\nReady to start!`
+      `Hello Coach Matboly! 🏋️‍♂️\nI have just registered on your website for [${translatedPlan.name} - ${durationLabel}] (${priceDisplay}${discountInfo}).\n\n📌 Details:\n- Name: ${name}\n- Phone: ${fullPhone}\n- Country: ${selectedCountry.flag} ${language === 'ar' ? selectedCountry.nameAr : selectedCountry.name}\n- Experience: ${experience}\n- Goal: ${fitnessGoal}\n\nReady to start!`
     );
     const waUrl = `https://wa.me/${coachPhone}?text=${waMessage}`;
 
@@ -120,15 +138,17 @@ export const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({
               ⚡
             </div>
             <div>
-              <h3 className="font-heading font-black text-xl text-white uppercase tracking-wider">
-                {t.checkout.title}
+              <h3 className="font-heading font-black text-lg text-white uppercase tracking-wider">
+                {t.checkout.modalTitle || t.checkout.title || (isRTL ? 'الانضمام لبرنامج التدريب' : 'JOIN COACHING PROGRAM')}
               </h3>
-              <p className="text-[11px] text-neutral-400">{t.checkout.subtitle}</p>
+              <p className="text-xs text-neutral-400">
+                {t.checkout.modalSubtitle || t.checkout.subtitle || (isRTL ? 'إشراف ومتابعة مباشرة مع كوتش مدبولي' : 'Direct Mentorship with Coach Matboly')}
+              </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-md bg-neutral-900 border border-neutral-700 hover:text-white text-neutral-400 transition-colors cursor-pointer"
+            className="p-1.5 text-neutral-400 hover:text-white rounded-md hover:bg-neutral-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -146,7 +166,7 @@ export const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({
               </h4>
               <p className="text-sm text-neutral-300 max-w-md mx-auto">
                 {t.checkout.submittedDesc}{' '}
-                <strong className="text-[#FFE600]">{name}</strong>! [{translatedPlan.name} - {translatedPlan.duration}]
+                <strong className="text-[#FFE600]">{name}</strong>! [{translatedPlan.name} - {activeDuration?.displayLabel}]
               </p>
               <div className="pt-4 flex justify-center gap-3">
                 <button
@@ -160,15 +180,15 @@ export const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({
             </div>
           ) : (
             <>
-              {/* Plan Selector Buttons (4 plans) */}
+              {/* Package Selector (Tabs) */}
               <div>
                 <label className="block text-xs font-bold text-[#FFE600] uppercase tracking-wider mb-2">
-                  {t.checkout.selectCommitment}
+                  {isRTL ? 'اختر الباقة:' : 'Select Package:'}
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {plans.map((p, idx) => {
                     const isSelected = p.id === activePlanId;
-                    const pTrans = t.plans.plans[idx] || { duration: p.duration };
+                    const pTrans = t.plans.plans[idx] || { name: p.name };
                     return (
                       <button
                         key={p.id}
@@ -180,7 +200,9 @@ export const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({
                             : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:border-neutral-600'
                         }`}
                       >
-                        <p className="font-heading font-black text-xs sm:text-sm uppercase truncate">{pTrans.duration}</p>
+                        <p className="font-heading font-black text-xs sm:text-sm uppercase truncate">
+                          {pTrans.name || p.name}
+                        </p>
                         <p className={`text-xs font-extrabold ${isSelected ? 'text-black' : 'text-[#FFE600]'}`}>
                           {p.price}
                         </p>
@@ -190,27 +212,93 @@ export const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({
                 </div>
               </div>
 
-              {/* Active Plan Highlights Box */}
-              <div className="bg-black/80 border border-neutral-800 p-4 rounded-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              {/* Duration Selector for the Active Plan */}
+              {calculatedDurations.length > 1 && (
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-heading font-black text-xl sm:text-2xl text-white uppercase">
+                  <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-2">
+                    {isRTL ? 'اختر مدة الاشتراك للباقة:' : 'Select Duration:'}
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {calculatedDurations.map((dur, dIdx) => {
+                      const isSelectedDur = selectedDurationIndex === dIdx;
+                      return (
+                        <button
+                          key={dur.id || dIdx}
+                          type="button"
+                          onClick={() => setSelectedDurationIndex(dIdx)}
+                          className={`px-3 py-2 rounded-sm border text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                            isSelectedDur
+                              ? 'bg-[#FFE600] border-[#FFE600] text-black font-extrabold shadow-sm'
+                              : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:border-neutral-600'
+                          }`}
+                        >
+                          <span>{dur.displayLabel}</span>
+                          {dur.hasDiscount && (
+                            <span
+                              className={`text-[10px] font-black px-1.5 rounded-full ${
+                                isSelectedDur
+                                  ? 'bg-black text-[#FFE600]'
+                                  : 'bg-[#FFE600]/20 text-[#FFE600]'
+                              }`}
+                            >
+                              {isRTL ? dur.discountBadgeAr : dur.discountBadge}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Active Plan & Duration Presentation:
+                  3 Months
+                  /1,500 EGP/
+                  1,200 EGP
+                  20% OFF
+              */}
+              <div className="bg-black/90 border border-neutral-800 p-4 rounded-md">
+                <div className="flex items-center justify-between gap-2 border-b border-neutral-800/80 pb-3">
+                  <div>
+                    <span className="text-[10px] font-bold text-[#FFE600] uppercase tracking-wider block">
                       {translatedPlan.name}
                     </span>
-                    {translatedPlan.badgeText && (
-                      <span className="px-2 py-0.5 rounded bg-[#FFE600] text-black text-[10px] font-black uppercase">
-                        {translatedPlan.badgeText}
+                    <h4 className="font-heading font-black text-xl sm:text-2xl text-white uppercase">
+                      {activeDuration?.displayLabel || translatedPlan.duration}
+                    </h4>
+                  </div>
+                  {translatedPlan.badgeText && (
+                    <span className="px-2 py-0.5 rounded bg-[#FFE600] text-black text-[10px] font-black uppercase">
+                      {translatedPlan.badgeText}
+                    </span>
+                  )}
+                </div>
+
+                <div className="pt-3 flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2">
+                  <div>
+                    {activeDuration?.hasDiscount && (
+                      <span className="text-sm sm:text-base text-neutral-400 font-bold line-through">
+                        {activeDuration.strikethroughDisplay}
                       </span>
                     )}
+                    <div className="flex items-baseline gap-2.5">
+                      <span className="font-heading font-black text-3xl sm:text-4xl text-[#FFE600]">
+                        {activeDuration?.formattedSellingPrice || currentPlan.price}
+                      </span>
+                      {activeDuration?.hasDiscount && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-[#FFE600] text-black shadow-sm uppercase">
+                          {isRTL ? activeDuration.discountBadgeAr : activeDuration.discountBadge}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-xs text-neutral-400 mt-0.5">{translatedPlan.periodText} — {translatedPlan.duration}</p>
-                </div>
-                <div className={isRTL ? 'text-left' : 'text-right'}>
-                  <span className="font-heading font-black text-2xl sm:text-3xl text-[#FFE600]">{currentPlan.price}</span>
-                  {currentPlan.originalPrice && (
-                    <span className="text-xs text-neutral-500 line-through ml-2 font-bold">
-                      {currentPlan.originalPrice}
-                    </span>
+
+                  {activeDuration?.hasDiscount && (
+                    <p className="text-xs font-bold text-neutral-400">
+                      {isRTL
+                        ? `وفر ${activeDuration.formattedDiscountAmount}`
+                        : `Save ${activeDuration.formattedDiscountAmount}`}
+                    </p>
                   )}
                 </div>
               </div>
@@ -301,78 +389,91 @@ export const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({
                       />
                     </div>
                   </div>
-                  <p className="text-[10px] text-neutral-400 mt-1">
-                    {t.checkout.selectedInternational}: <strong className="text-[#FFE600]" dir="ltr">{formatCleanInternationalNumber()}</strong>
-                  </p>
                 </div>
 
-                {/* Email & Fitness Goal */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-bold text-neutral-300 uppercase tracking-wider mb-1">
-                      {t.checkout.emailLabel}
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="user@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-2 text-sm text-white focus:border-[#FFE600] focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-neutral-300 uppercase tracking-wider mb-1">
-                      {t.checkout.fitnessGoalLabel}
-                    </label>
-                    <select
-                      value={fitnessGoal}
-                      onChange={(e) => setFitnessGoal(e.target.value)}
-                      className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-2 text-sm text-white focus:border-[#FFE600] focus:outline-none"
-                    >
-                      <option value="Fat Loss & Shredding">{t.checkout.goalFatLoss}</option>
-                      <option value="Muscle Building & Hypertrophy">{t.checkout.goalMuscleBuilding}</option>
-                      <option value="Body Recomposition">{t.checkout.goalBodyRecomposition}</option>
-                      <option value="Strength & Athletic Performance">{t.checkout.goalStrength}</option>
-                      <option value="Posture & Injury Recovery">{t.checkout.goalPosture}</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Experience Level */}
+                {/* Email (Optional) */}
                 <div>
                   <label className="block text-[11px] font-bold text-neutral-300 uppercase tracking-wider mb-1">
-                    {t.checkout.experienceLabel}
+                    {t.contact.email} ({t.contact.optional})
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="name@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-2.5 text-sm text-white focus:border-[#FFE600] focus:outline-none"
+                  />
+                </div>
+
+                {/* Fitness Goal */}
+                <div>
+                  <label className="block text-[11px] font-bold text-neutral-300 uppercase tracking-wider mb-1">
+                    {t.checkout.fitnessGoalLabel || t.checkout.goalLabel || (isRTL ? 'الهدف الرياضي الأساسي' : 'Primary Fitness Goal')}
+                  </label>
+                  <select
+                    value={fitnessGoal}
+                    onChange={(e) => setFitnessGoal(e.target.value)}
+                    className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-2.5 text-sm text-white focus:border-[#FFE600] focus:outline-none"
+                  >
+                    <option value="Fat Loss & Shredding">
+                      {t.checkout.goals?.fatLoss || t.checkout.goalFatLoss || (isRTL ? 'حرق الدهون ونحت القوام' : 'Fat Loss & Shredding')}
+                    </option>
+                    <option value="Muscle Building & Hypertrophy">
+                      {t.checkout.goals?.muscle || t.checkout.goalMuscleBuilding || (isRTL ? 'بناء وزيادة الكتلة العضلية' : 'Muscle Building & Hypertrophy')}
+                    </option>
+                    <option value="Strength & Athletic Conditioning">
+                      {t.checkout.goals?.strength || t.checkout.goalStrength || (isRTL ? 'زيادة القوة والأداء الرياضي' : 'Strength & Athletic Performance')}
+                    </option>
+                    <option value="Complete Body Recomposition">
+                      {t.checkout.goals?.recomp || t.checkout.goalBodyRecomposition || (isRTL ? 'إعادة تشكيل الجسم (خسارة دهون وبناء عضل معاً)' : 'Complete Body Recomposition')}
+                    </option>
+                  </select>
+                </div>
+
+                {/* Training Experience */}
+                <div>
+                  <label className="block text-[11px] font-bold text-neutral-300 uppercase tracking-wider mb-1">
+                    {t.checkout.experienceLabel || (isRTL ? 'الخبرة التدريبية السابقة' : 'Training Experience')}
                   </label>
                   <select
                     value={experience}
                     onChange={(e) => setExperience(e.target.value)}
-                    className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-2 text-sm text-white focus:border-[#FFE600] focus:outline-none"
+                    className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-2.5 text-sm text-white focus:border-[#FFE600] focus:outline-none"
                   >
-                    <option value="Beginner (< 1 year)">{t.checkout.expBeginner}</option>
-                    <option value="Intermediate (1-3 years)">{t.checkout.expIntermediate}</option>
-                    <option value="Advanced (3+ years)">{t.checkout.expAdvanced}</option>
-                    <option value="Returning after a break">{t.checkout.expReturning}</option>
+                    <option value="Beginner (< 1 year)">
+                      {t.checkout.exp?.beginner || t.checkout.expBeginner || (isRTL ? 'مبتدئ (أقل من سنة)' : 'Beginner (< 1 year)')}
+                    </option>
+                    <option value="Intermediate (1-3 years)">
+                      {t.checkout.exp?.intermediate || t.checkout.expIntermediate || (isRTL ? 'متوسط (1 إلى 3 سنوات)' : 'Intermediate (1-3 years)')}
+                    </option>
+                    <option value="Advanced (3+ years)">
+                      {t.checkout.exp?.advanced || t.checkout.expAdvanced || (isRTL ? 'متقدم (أكثر من 3 سنوات)' : 'Advanced (3+ years)')}
+                    </option>
                   </select>
                 </div>
 
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-[#FFE600] hover:bg-[#fff033] active:scale-[0.99] disabled:opacity-50 text-black font-heading font-black text-lg sm:text-xl py-4 rounded-sm uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(255,230,0,0.4)] cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <MessageCircle className="w-5 h-5 fill-current" />
-                    <span>{isSubmitting ? t.checkout.submittingBtn : t.checkout.confirmBtn}</span>
-                  </button>
+                {/* Guarantee Note */}
+                <div className="bg-neutral-900/80 border border-neutral-800 p-3 rounded flex items-center gap-2.5 text-xs text-neutral-300">
+                  <ShieldCheck className="w-5 h-5 text-[#FFE600] shrink-0" />
+                  <span>
+                    {t.checkout.securityNote || t.checkout.guarantee || (isRTL ? 'بدء سريع خلال 24 ساعة. بياناتك مسجلة ومحفوظة مباشرة لدى الكوتش.' : 'Fast onboarding within 24 hours. Data saved directly in coach system.')}
+                  </span>
                 </div>
-              </form>
 
-              {/* Guarantee */}
-              <div className="flex items-center gap-2 text-[11px] text-neutral-400 justify-center">
-                <ShieldCheck className="w-4 h-4 text-[#FFE600]" />
-                <span>{t.checkout.guarantee}</span>
-              </div>
+                {/* Submit / WhatsApp CTA Button */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-4 bg-[#FFE600] hover:bg-[#fff033] text-black font-heading font-black text-base sm:text-lg rounded-sm tracking-wider uppercase flex items-center justify-center gap-2 transition-all cursor-pointer shadow-[0_0_20px_rgba(255,230,0,0.35)] disabled:opacity-50"
+                >
+                  <MessageCircle className="w-5 h-5 fill-current" />
+                  <span>
+                    {isSubmitting
+                      ? (t.checkout.savingOrder || t.checkout.submittingBtn || (isRTL ? 'جاري حفظ بياناتك...' : 'SAVING REGISTRATION...'))
+                      : `${t.checkout.proceedBtn || t.checkout.confirmBtn || (isRTL ? 'تأكيد التسجيل والمتابعة عبر واتساب' : 'CONFIRM & START ON WHATSAPP')} (${activeDuration?.formattedSellingPrice || currentPlan.price})`}
+                  </span>
+                </button>
+              </form>
             </>
           )}
         </div>
@@ -380,4 +481,3 @@ export const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({
     </div>
   );
 };
-

@@ -98,7 +98,10 @@ export const TransformationsSection: React.FC<TransformationsSectionProps> = ({
             <div
               className="flex items-stretch gap-6 sm:gap-8 will-change-transform"
               style={{
-                animation: `${isRTL ? 'marqueeRTL' : 'marqueeLTR'} ${Math.max(35, marqueeItems.length * 6)}s linear infinite`,
+                animationName: isRTL ? 'marqueeRTL' : 'marqueeLTR',
+                animationDuration: `${Math.max(35, marqueeItems.length * 6)}s`,
+                animationTimingFunction: 'linear',
+                animationIterationCount: 'infinite',
                 animationPlayState: isPaused ? 'paused' : 'running',
                 width: 'max-content',
               }}
@@ -117,7 +120,7 @@ export const TransformationsSection: React.FC<TransformationsSectionProps> = ({
                     className="w-[340px] sm:w-[400px] md:w-[450px] bg-[#111111] border border-neutral-800 hover:border-[#FFE600]/70 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 flex flex-col shrink-0 group/card transform-gpu hover:-translate-y-1.5"
                   >
                     {/* 1200 x 675 px (16:9) Before & After Comparison Frame */}
-                    <div className="relative w-full aspect-[16/9] bg-black overflow-hidden select-none">
+                    <div dir="ltr" className="relative w-full aspect-[16/9] bg-black overflow-hidden select-none">
                       {isSeparateSplit ? (
                         /* Side-by-Side Split: Left BEFORE, Right AFTER */
                         <div className="w-full h-full flex items-stretch relative">
@@ -137,7 +140,7 @@ export const TransformationsSection: React.FC<TransformationsSectionProps> = ({
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
 
                             {/* Small Clear BEFORE Label (Left) */}
-                            <span className="absolute top-2.5 start-2.5 bg-black/85 backdrop-blur-md border border-neutral-700 text-neutral-300 text-[10px] font-black uppercase px-2 py-0.5 rounded shadow">
+                            <span className="absolute top-2.5 left-2.5 bg-black/85 backdrop-blur-md border border-neutral-700 text-neutral-300 text-[10px] font-black uppercase px-2 py-0.5 rounded shadow">
                               BEFORE • قبل
                             </span>
                           </div>
@@ -158,7 +161,7 @@ export const TransformationsSection: React.FC<TransformationsSectionProps> = ({
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
 
                             {/* Small Clear AFTER Label (Right) */}
-                            <span className="absolute top-2.5 end-2.5 bg-[#FFE600] text-black text-[10px] font-black uppercase px-2 py-0.5 rounded shadow font-heading">
+                            <span className="absolute top-2.5 right-2.5 bg-[#FFE600] text-black text-[10px] font-black uppercase px-2 py-0.5 rounded shadow font-heading">
                               AFTER • بعد
                             </span>
                           </div>
@@ -187,15 +190,18 @@ export const TransformationsSection: React.FC<TransformationsSectionProps> = ({
                           <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent to-black/30 pointer-events-none" />
                           
                           {/* Top Labels */}
-                          <span className="absolute top-2.5 start-2.5 bg-black/85 backdrop-blur-md border border-neutral-700 text-neutral-300 text-[10px] font-black uppercase px-2 py-0.5 rounded shadow">
+                          <span className="absolute top-2.5 left-2.5 bg-black/85 backdrop-blur-md border border-neutral-700 text-neutral-300 text-[10px] font-black uppercase px-2 py-0.5 rounded shadow">
                             BEFORE • قبل
                           </span>
-                          <span className="absolute top-2.5 end-2.5 bg-[#FFE600] text-black text-[10px] font-black uppercase px-2 py-0.5 rounded shadow font-heading">
+                          <span className="absolute top-2.5 right-2.5 bg-[#FFE600] text-black text-[10px] font-black uppercase px-2 py-0.5 rounded shadow font-heading">
                             AFTER • بعد
                           </span>
 
                           {/* Clean vertical divider */}
-                          <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1.5px] bg-[#FFE600]/60 z-10 pointer-events-none" />
+                          <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[2px] bg-[#FFE600]/80 z-10 pointer-events-none" />
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full bg-black/90 border border-[#FFE600]/80 text-[#FFE600] text-[9px] font-black flex items-center justify-center shadow-lg font-heading pointer-events-none">
+                            VS
+                          </div>
                         </div>
                       )}
 

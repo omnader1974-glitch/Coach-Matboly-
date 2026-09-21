@@ -48,9 +48,21 @@ export interface HowToSubscriptionData {
   reels: ReelVideoItem[];
 }
 
+export interface PlanDurationPrice {
+  id: string;
+  months: number;
+  label: string;
+  labelAr?: string;
+  price: number;
+  isDefault?: boolean;
+}
+
 export interface MembershipPlan {
   id: string;
   name: string;
+  currency?: string; // e.g. 'EGP' or '$'
+  durationPrices?: PlanDurationPrice[];
+  defaultDurationMonths?: number;
   duration: string;
   price: string;
   originalPrice?: string;

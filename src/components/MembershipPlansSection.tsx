@@ -1,16 +1,231 @@
-import React from 'react';
-import { Check, Flame, Zap, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import { Check, Flame, Zap, ShieldCheck } from 'lucide-react';
 import { MembershipPlansData, MembershipPlan } from '../types/fitness';
 import { useLanguage } from '../context/LanguageContext';
+import { getPlanCalculatedDurations } from '../lib/planPricing';
 
 interface MembershipPlansSectionProps {
   data: MembershipPlansData;
   onSelectPlan: (plan: MembershipPlan) => void;
 }
 
+interface PlanCardProps {
+  plan: MembershipPlan;
+  fallbackPlan: any;
+  index: number;
+  isHighlighted: boolean;
+  onSelectPlan: (plan: MembershipPlan) => void;
+  isRTL: boolean;
+  t: any;
+}
+
+const PlanCard: React.FC<PlanCardProps> = ({
+  plan,
+  fallbackPlan,
+  index,
+  isHighlighted,
+  onSelectPlan,
+  isRTL,
+  t,
+}) => {
+  const calculatedDurations = getPlanCalculatedDurations(plan, isRTL);
+  
+  // Find default duration index
+  const defaultIdx = calculatedDurations.findIndex((d) => d.isDefault);
+  const initialIndex = defaultIdx >= 0 ? defaultIdx : Math.min(2, calculatedDurations.length - 1);
+  const [selectedDurationIndex, setSelectedDurationIndex] = useState(Math.max(0, initialIndex));
+
+  const activeDuration = calculatedDurations[selectedDurationIndex] || calculatedDurations[0];
+
+  const planName = plan.name || fallbackPlan.name;
+  const planBadge = plan.badgeText || fallbackPlan.badgeText;
+  const planDesc = plan.description || fallbackPlan.description;
+  const planFeatures =
+    Array.isArray(plan.features) && plan.features.length > 0
+      ? plan.features
+      : fallbackPlan.features;
+
+  const handleCtaClick = () => {
+    // Send selected plan with active duration and price details
+    onSelectPlan({
+      ...plan,
+      name: planName,
+      duration: activeDuration.displayLabel,
+      price: activeDuration.formattedSellingPrice,
+      originalPrice: activeDuration.hasDiscount ? activeDuration.formattedRegularPrice : undefined,
+      defaultDurationMonths: activeDuration.months,
+    });
+  };
+
+  return (
+    <div
+      className={`relative flex flex-col justify-between rounded-xl p-6 sm:p-8 transition-all duration-300 ${
+        isHighlighted
+          ? 'bg-neutral-900/95 border-2 border-[#FFE600] shadow-[0_0_35px_rgba(255,230,0,0.18)] scale-[1.01] z-10'
+          : 'bg-[#121212] border border-neutral-800 hover:border-neutral-700 hover:shadow-xl'
+      }`}
+    >
+      {/* Popular / Best Value Badge */}
+      {planBadge && (
+        <div className={`absolute -top-3.5 ${isRTL ? 'right-8' : 'left-8'}`}>
+          <span
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black tracking-widest uppercase shadow-md ${
+              isHighlighted
+                ? 'bg-[#FFE600] text-black shadow-[0_0_15px_rgba(255,230,0,0.4)]'
+                : 'bg-neutral-800 text-[#FFE600] border border-[#FFE600]/40'
+            }`}
+          >
+            <Flame className="w-3.5 h-3.5 fill-current" />
+            {planBadge}
+          </span>
+        </div>
+      )}
+
+      <div>
+        {/* Plan Header */}
+        <div className="pb-4 border-b border-neutral-800/80 pt-1">
+          <span className="text-xs font-bold tracking-widest text-[#FFE600] uppercase block">
+            {planName}
+          </span>
+
+          {/* Duration Selector Tabs (if multiple durations exist) */}
+          {calculatedDurations.length > 1 && (
+            <div className="mt-3.5 mb-4">
+              <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">
+                {isRTL ? 'اختر مدة الاشتراك:' : 'Select Duration:'}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {calculatedDurations.map((dur, dIdx) => {
+                  const isDurSelected = selectedDurationIndex === dIdx;
+                  return (
+                    <button
+                      key={dur.id || dIdx}
+                      type="button"
+                      onClick={() => setSelectedDurationIndex(dIdx)}
+                      className={`px-2.5 py-1.5 rounded-sm text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        isDurSelected
+                          ? 'bg-[#FFE600] text-black font-extrabold shadow-sm'
+                          : 'bg-neutral-900 border border-neutral-700/80 text-neutral-300 hover:border-neutral-500 hover:text-white'
+                      }`}
+                    >
+                      <span>{dur.displayLabel}</span>
+                      {dur.hasDiscount && (
+                        <span
+                          className={`text-[10px] font-black px-1.5 py-0.2 rounded-full ${
+                            isDurSelected
+                              ? 'bg-black text-[#FFE600]'
+                              : 'bg-[#FFE600]/20 text-[#FFE600]'
+                          }`}
+                        >
+                          {isRTL ? dur.discountBadgeAr : dur.discountBadge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* EXACT REQUESTED PRICING FORMAT:
+              3 Months
+              /1,500 EGP/
+              1,200 EGP
+              20% OFF
+          */}
+          <div className="mt-3 pt-3 border-t border-neutral-800/60">
+            {/* 1. Duration Name (e.g. 3 Months) */}
+            <h3 className="font-heading font-black text-2xl sm:text-3xl text-white tracking-wide uppercase">
+              {activeDuration.displayLabel}
+            </h3>
+
+            {/* 2. Regular Price /1,500 EGP/ (Strikethrough) */}
+            {activeDuration.hasDiscount ? (
+              <div className="mt-1.5">
+                <span className="text-base sm:text-lg text-neutral-400 font-bold line-through tracking-tight">
+                  {activeDuration.strikethroughDisplay}
+                </span>
+              </div>
+            ) : (
+              <div className="mt-1 text-xs text-neutral-400 font-medium">
+                {isRTL ? 'السعر الأساسي' : 'Standard Rate'}
+              </div>
+            )}
+
+            {/* 3. Final Price 1,200 EGP & 4. Discount Percentage 20% OFF */}
+            <div className="mt-1 flex items-baseline flex-wrap gap-2.5 sm:gap-3">
+              <span className="font-heading font-black text-4xl sm:text-5xl text-[#FFE600] tracking-tight">
+                {activeDuration.formattedSellingPrice}
+              </span>
+
+              {activeDuration.hasDiscount && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-[#FFE600] text-black shadow-md uppercase tracking-wider">
+                  {isRTL ? activeDuration.discountBadgeAr : activeDuration.discountBadge}
+                </span>
+              )}
+            </div>
+
+            {/* Savings Callout */}
+            {activeDuration.hasDiscount && (
+              <p className="text-[11px] font-bold text-neutral-400 mt-1">
+                {isRTL
+                  ? `وفرت ${activeDuration.formattedDiscountAmount} مع باقة الـ ${activeDuration.displayLabel}`
+                  : `You save ${activeDuration.formattedDiscountAmount} with ${activeDuration.displayLabel}`}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Plan Description */}
+        {planDesc && (
+          <p className="text-sm text-neutral-300 mt-4 leading-relaxed">
+            {planDesc}
+          </p>
+        )}
+
+        {/* Features List with Yellow Checks */}
+        <div className="space-y-3 pt-5 pb-6">
+          <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest">
+            {t.plans.includedTitle}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {planFeatures.map((feature: string, fIdx: number) => (
+              <div key={fIdx} className="flex items-start gap-2.5 text-xs sm:text-sm text-neutral-200">
+                <div className="w-4 h-4 rounded-full bg-[#FFE600]/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <Check className="w-3 h-3 text-[#FFE600] stroke-[3]" />
+                </div>
+                <span className="font-medium leading-tight">{feature}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Yellow CTA Button */}
+      <div className="pt-4 mt-auto border-t border-neutral-800/60">
+        <button
+          onClick={handleCtaClick}
+          className={`w-full py-4 px-6 rounded-sm font-heading font-black text-base sm:text-lg tracking-wider uppercase transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${
+            isHighlighted
+              ? 'bg-[#FFE600] hover:bg-[#fff033] active:scale-98 text-black shadow-[0_0_20px_rgba(255,230,0,0.35)]'
+              : 'bg-neutral-800 hover:bg-[#FFE600] active:scale-98 text-white hover:text-black border border-neutral-700 hover:border-[#FFE600]'
+          }`}
+        >
+          <span>
+            {isRTL
+              ? `اشترك في ${activeDuration.displayLabel}`
+              : `JOIN ${activeDuration.displayLabel}`}
+          </span>
+          <span className="text-lg">{isRTL ? '←' : '→'}</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export const MembershipPlansSection: React.FC<MembershipPlansSectionProps> = ({ data, onSelectPlan }) => {
   const { t, isRTL } = useLanguage();
-  // Ensure we show 4 plans in a 2x2 grid (Row 1: 2 plans, Row 2: 2 plans)
+  // Ensure we show up to 4 plans in a 2x2 grid (Row 1: 2 plans, Row 2: 2 plans)
   const displayPlans = data.plans.slice(0, 4);
 
   return (
@@ -51,107 +266,17 @@ export const MembershipPlansSection: React.FC<MembershipPlansSectionProps> = ({ 
               features: [],
             };
 
-            const planName = plan.name || fallbackPlan.name;
-            const planDuration = plan.duration || fallbackPlan.duration;
-            const planBadge = plan.badgeText || fallbackPlan.badgeText;
-            const planDesc = plan.description || fallbackPlan.description;
-            const planPeriod = plan.periodText || fallbackPlan.periodText;
-            const planCta = plan.ctaText || fallbackPlan.ctaText;
-            const planFeatures = Array.isArray(plan.features) && plan.features.length > 0 ? plan.features : fallbackPlan.features;
-
             return (
-              <div
+              <PlanCard
                 key={plan.id || index}
-                className={`relative flex flex-col justify-between rounded-xl p-6 sm:p-8 transition-all duration-300 ${
-                  isHighlighted
-                    ? 'bg-neutral-900/95 border-2 border-[#FFE600] shadow-[0_0_35px_rgba(255,230,0,0.18)] scale-[1.01] z-10'
-                    : 'bg-[#121212] border border-neutral-800 hover:border-neutral-700 hover:shadow-xl'
-                }`}
-              >
-                {/* Popular / Best Value Badge */}
-                {planBadge && (
-                  <div className={`absolute -top-3.5 ${isRTL ? 'right-8' : 'left-8'}`}>
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black tracking-widest uppercase shadow-md ${
-                        isHighlighted
-                          ? 'bg-[#FFE600] text-black shadow-[0_0_15px_rgba(255,230,0,0.4)]'
-                          : 'bg-neutral-800 text-[#FFE600] border border-[#FFE600]/40'
-                      }`}
-                    >
-                      <Flame className="w-3.5 h-3.5 fill-current" />
-                      {planBadge}
-                    </span>
-                  </div>
-                )}
-
-                <div>
-                  {/* Duration & Plan Name */}
-                  <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between pb-4 border-b border-neutral-800/80 pt-1">
-                    <div>
-                      <span className="text-xs font-bold tracking-widest text-[#FFE600] uppercase block">
-                        {planName}
-                      </span>
-                      <h3 className="font-heading font-black text-2xl sm:text-3xl text-white tracking-wide uppercase mt-1">
-                        {planDuration}
-                      </h3>
-                    </div>
-                    <div className="mt-2 sm:mt-0 text-left sm:text-right">
-                      <div className="flex items-baseline gap-2">
-                        <span className="font-heading font-black text-4xl sm:text-5xl text-[#FFE600] tracking-tight">
-                          {plan.price}
-                        </span>
-                        {plan.originalPrice && (
-                          <span className="text-base text-neutral-500 line-through font-bold">
-                            {plan.originalPrice}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">
-                        {planPeriod}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Plan Description */}
-                  {planDesc && (
-                    <p className="text-sm text-neutral-300 mt-4 leading-relaxed">
-                      {planDesc}
-                    </p>
-                  )}
-
-                  {/* Features List with Yellow Checks */}
-                  <div className="space-y-3 pt-5 pb-6">
-                    <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest">
-                      {t.plans.includedTitle}
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {planFeatures.map((feature, fIdx) => (
-                        <div key={fIdx} className="flex items-start gap-2.5 text-xs sm:text-sm text-neutral-200">
-                          <div className="w-4 h-4 rounded-full bg-[#FFE600]/20 flex items-center justify-center shrink-0 mt-0.5">
-                            <Check className="w-3 h-3 text-[#FFE600] stroke-[3]" />
-                          </div>
-                          <span className="font-medium leading-tight">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Yellow CTA Button */}
-                <div className="pt-4 mt-auto border-t border-neutral-800/60">
-                  <button
-                    onClick={() => onSelectPlan({ ...plan, name: planName, duration: planDuration })}
-                    className={`w-full py-4 px-6 rounded-sm font-heading font-black text-base sm:text-lg tracking-wider uppercase transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${
-                      isHighlighted
-                        ? 'bg-[#FFE600] hover:bg-[#fff033] active:scale-98 text-black shadow-[0_0_20px_rgba(255,230,0,0.35)]'
-                        : 'bg-neutral-800 hover:bg-[#FFE600] active:scale-98 text-white hover:text-black border border-neutral-700 hover:border-[#FFE600]'
-                    }`}
-                  >
-                    <span>{planCta}</span>
-                    <span className="text-lg">{isRTL ? '←' : '→'}</span>
-                  </button>
-                </div>
-              </div>
+                plan={plan}
+                fallbackPlan={fallbackPlan}
+                index={index}
+                isHighlighted={Boolean(isHighlighted)}
+                onSelectPlan={onSelectPlan}
+                isRTL={isRTL}
+                t={t}
+              />
             );
           })}
         </div>
@@ -167,4 +292,3 @@ export const MembershipPlansSection: React.FC<MembershipPlansSectionProps> = ({ 
     </section>
   );
 };
-

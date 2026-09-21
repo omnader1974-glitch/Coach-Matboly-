@@ -150,6 +150,8 @@ export interface Translations {
   checkout: {
     title: string;
     subtitle: string;
+    modalTitle?: string;
+    modalSubtitle?: string;
     submittedTitle: string;
     submittedDesc: string;
     closeBtn: string;
@@ -161,19 +163,36 @@ export interface Translations {
     selectedInternational: string;
     emailLabel: string;
     fitnessGoalLabel: string;
+    goalLabel?: string;
     goalFatLoss: string;
     goalMuscleBuilding: string;
     goalBodyRecomposition: string;
     goalStrength: string;
     goalPosture: string;
+    goals?: {
+      fatLoss: string;
+      muscle: string;
+      strength: string;
+      recomp: string;
+      posture?: string;
+    };
     experienceLabel: string;
     expBeginner: string;
     expIntermediate: string;
     expAdvanced: string;
     expReturning: string;
+    exp?: {
+      beginner: string;
+      intermediate: string;
+      advanced: string;
+      returning?: string;
+    };
     submittingBtn: string;
     confirmBtn: string;
     guarantee: string;
+    securityNote?: string;
+    savingOrder?: string;
+    proceedBtn?: string;
   };
   legal: {
     termsTitle: string;
@@ -446,6 +465,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     checkout: {
       title: 'الانضمام لبرنامج التدريب',
       subtitle: 'إشراف ومتابعة مباشرة مع كوتش مدبولي',
+      modalTitle: 'الانضمام لبرنامج التدريب',
+      modalSubtitle: 'إشراف ومتابعة مباشرة مع كوتش مدبولي',
       submittedTitle: 'تم تسجيل طلبك بنجاح!',
       submittedDesc: 'تم حفظ بيانات اشتراكك في النظام وتحويلك مباشرة إلى محادثة واتساب مع كوتش مدبولي',
       closeBtn: 'إغلاق',
@@ -457,19 +478,36 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       selectedInternational: 'الرقم الدولي المحدد',
       emailLabel: 'البريد الإلكتروني (اختياري)',
       fitnessGoalLabel: 'الهدف الرياضي الأساسي',
+      goalLabel: 'الهدف الرياضي الأساسي',
       goalFatLoss: 'حرق الدهون ونحت القوام',
       goalMuscleBuilding: 'بناء وزيادة الكتلة العضلية',
       goalBodyRecomposition: 'إعادة تشكيل الجسم (خسارة دهون وبناء عضل معاً)',
       goalStrength: 'زيادة القوة والأداء الرياضي',
       goalPosture: 'تحسين القوام والاستشفاء من الإصابات',
+      goals: {
+        fatLoss: 'حرق الدهون ونحت القوام',
+        muscle: 'بناء وزيادة الكتلة العضلية',
+        strength: 'زيادة القوة والأداء الرياضي',
+        recomp: 'إعادة تشكيل الجسم (خسارة دهون وبناء عضل معاً)',
+        posture: 'تحسين القوام والاستشفاء من الإصابات',
+      },
       experienceLabel: 'الخبرة التدريبية السابقة',
       expBeginner: 'مبتدئ (أقل من سنة)',
       expIntermediate: 'متوسط (1 إلى 3 سنوات)',
       expAdvanced: 'متقدم (أكثر من 3 سنوات)',
       expReturning: 'عائد للتمرين بعد انقطاع',
+      exp: {
+        beginner: 'مبتدئ (أقل من سنة)',
+        intermediate: 'متوسط (1 إلى 3 سنوات)',
+        advanced: 'متقدم (أكثر من 3 سنوات)',
+        returning: 'عائد للتمرين بعد انقطاع',
+      },
       submittingBtn: 'جاري حفظ بياناتك...',
+      savingOrder: 'جاري حفظ بياناتك...',
       confirmBtn: 'تأكيد التسجيل والمتابعة عبر واتساب',
+      proceedBtn: 'تأكيد التسجيل والمتابعة عبر واتساب',
       guarantee: 'بدء سريع خلال 24 ساعة. بياناتك مسجلة ومحفوظة مباشرة لدى الكوتش.',
+      securityNote: 'بدء سريع خلال 24 ساعة. بياناتك مسجلة ومحفوظة مباشرة لدى الكوتش.',
     },
     legal: {
       termsTitle: 'الشروط والأحكام - تدريب كوتش مدبولي',
@@ -771,6 +809,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     checkout: {
       title: 'JOIN COACHING PROGRAM',
       subtitle: 'Direct Mentorship with Coach Matboly',
+      modalTitle: 'JOIN COACHING PROGRAM',
+      modalSubtitle: 'Direct Mentorship with Coach Matboly',
       submittedTitle: 'REGISTRATION SUBMITTED!',
       submittedDesc: 'Your registration has been saved in the system and redirected to WhatsApp with Coach Matboly',
       closeBtn: 'CLOSE',
@@ -782,19 +822,36 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       selectedInternational: 'Selected International Number',
       emailLabel: 'Email Address (Optional)',
       fitnessGoalLabel: 'Primary Fitness Goal',
+      goalLabel: 'Primary Fitness Goal',
       goalFatLoss: 'Fat Loss & Shredding',
       goalMuscleBuilding: 'Muscle Building & Hypertrophy',
       goalBodyRecomposition: 'Body Recomposition',
       goalStrength: 'Strength & Athletic Performance',
       goalPosture: 'Posture & Injury Recovery',
+      goals: {
+        fatLoss: 'Fat Loss & Shredding',
+        muscle: 'Muscle Building & Hypertrophy',
+        strength: 'Strength & Athletic Performance',
+        recomp: 'Complete Body Recomposition',
+        posture: 'Posture & Injury Recovery',
+      },
       experienceLabel: 'Training Experience',
       expBeginner: 'Beginner (< 1 year)',
       expIntermediate: 'Intermediate (1-3 years)',
       expAdvanced: 'Advanced (3+ years)',
       expReturning: 'Returning after a break',
+      exp: {
+        beginner: 'Beginner (< 1 year)',
+        intermediate: 'Intermediate (1-3 years)',
+        advanced: 'Advanced (3+ years)',
+        returning: 'Returning after a break',
+      },
       submittingBtn: 'SAVING REGISTRATION...',
+      savingOrder: 'SAVING REGISTRATION...',
       confirmBtn: 'CONFIRM & START ON WHATSAPP',
+      proceedBtn: 'CONFIRM & START ON WHATSAPP',
       guarantee: 'Fast onboarding within 24 hours. Data saved directly in coach system.',
+      securityNote: 'Fast onboarding within 24 hours. Data saved directly in coach system.',
     },
     legal: {
       termsTitle: 'TERMS & CONDITIONS - COACH MATBOLY FITNESS',

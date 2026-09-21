@@ -9,6 +9,7 @@ import {
 import { db } from '../lib/firebase';
 import { SiteConfig } from '../types/fitness';
 import { DEFAULT_SITE_CONFIG } from '../data/initialData';
+import { normalizePlan } from '../lib/planPricing';
 
 const COLLECTION_NAME = 'site_config';
 const DOC_ID = 'main';
@@ -85,14 +86,16 @@ function mergeWithDefaults(data: any): SiteConfig {
       ...DEFAULT_SITE_CONFIG.plans,
       ...(data.plans || {}),
       plans: Array.isArray(data.plans?.plans)
-        ? data.plans.plans
-        : DEFAULT_SITE_CONFIG.plans.plans,
+        ? data.plans.plans.map(normalizePlan)
+        : DEFAULT_SITE_CONFIG.plans.plans.map(normalizePlan),
     },
     transformations: {
       ...DEFAULT_SITE_CONFIG.transformations,
       ...(data.transformations || {}),
       items: Array.isArray(data.transformations?.items)
         ? data.transformations.items
+        : data.transformations !== undefined
+        ? []
         : DEFAULT_SITE_CONFIG.transformations.items,
     },
     choices: {
@@ -301,6 +304,34 @@ export function useSiteConfig() {
     updateConfig((prev) => ({ ...prev, transformations: { ...prev.transformations, ...transformationsUpdates } }), immediate);
   }, [updateConfig]);
 
+  const deleteTransformation = useCallback(async (targetIdOrIndex: string | number): Promise<{ success: boolean; error?: string }> => {
+    const currentConfig = latestConfigRef.current;
+    const currentItems = currentConfig.transformations?.items || [];
+
+    const nextItems = typeof targetIdOrIndex === 'number'
+      ? currentItems.filter((_, i) => i !== targetIdOrIndex)
+      : currentItems.filter((item, i) => item.id !== targetIdOrIndex && `trans-item-${i}` !== targetIdOrIndex && `trans-${i}` !== targetIdOrIndex);
+
+    const nextConfig: SiteConfig = {
+      ...currentConfig,
+      transformations: {
+        ...currentConfig.transformations,
+        items: nextItems,
+      },
+    };
+
+    latestConfigRef.current = nextConfig;
+    setConfig(nextConfig);
+
+    try {
+      localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(nextConfig));
+    } catch {
+      // ignore
+    }
+
+    return await persistToFirestore(nextConfig);
+  }, [persistToFirestore]);
+
   const updateChoices = useCallback((choicesUpdates: Partial<SiteConfig['choices']>) => {
     updateConfig((prev) => ({ ...prev, choices: { ...prev.choices, ...choicesUpdates } }));
   }, [updateConfig]);
@@ -350,6 +381,7 @@ export function useSiteConfig() {
     updateSubscription,
     updatePlans,
     updateTransformations,
+    deleteTransformation,
     updateChoices,
     updateContact,
     updateFooter,
