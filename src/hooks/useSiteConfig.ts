@@ -82,6 +82,10 @@ function mergeWithDefaults(data: any): SiteConfig {
         ? data.subscription.reels
         : DEFAULT_SITE_CONFIG.subscription.reels,
     },
+    calculator: {
+      ...DEFAULT_SITE_CONFIG.calculator,
+      ...(data.calculator || {}),
+    },
     plans: {
       ...DEFAULT_SITE_CONFIG.plans,
       ...(data.plans || {}),
@@ -293,7 +297,11 @@ export function useSiteConfig() {
   }, [updateConfig]);
 
   const updateSubscription = useCallback((subUpdates: Partial<SiteConfig['subscription']>) => {
-    updateConfig((prev) => ({ ...prev, subscription: { ...prev.subscription, ...subUpdates } }));
+    updateConfig((prev) => ({ ...prev, subscription: { ...(prev.subscription || DEFAULT_SITE_CONFIG.subscription), ...subUpdates } }));
+  }, [updateConfig]);
+
+  const updateCalculator = useCallback((calcUpdates: Partial<NonNullable<SiteConfig['calculator']>>) => {
+    updateConfig((prev) => ({ ...prev, calculator: { ...(prev.calculator || DEFAULT_SITE_CONFIG.calculator), ...calcUpdates } }));
   }, [updateConfig]);
 
   const updatePlans = useCallback((plansUpdates: Partial<SiteConfig['plans']>) => {
@@ -379,6 +387,7 @@ export function useSiteConfig() {
     updateHero,
     updateAbout,
     updateSubscription,
+    updateCalculator,
     updatePlans,
     updateTransformations,
     deleteTransformation,

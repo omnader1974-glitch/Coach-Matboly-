@@ -9,7 +9,7 @@ import { useCustomers } from './hooks/useCustomers';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { AboutCoachSection } from './components/AboutCoachSection';
-import { HowToSubscriptionSection } from './components/HowToSubscriptionSection';
+import { CalorieCalculatorSection } from './components/CalorieCalculatorSection';
 import { MembershipPlansSection } from './components/MembershipPlansSection';
 import { TransformationsSection } from './components/TransformationsSection';
 import { GetInTouchSection } from './components/GetInTouchSection';
@@ -30,6 +30,7 @@ export default function App() {
     updateHero,
     updateAbout,
     updateSubscription,
+    updateCalculator,
     updatePlans,
     updateTransformations,
     deleteTransformation,
@@ -122,9 +123,9 @@ export default function App() {
           onJoinClick={() => handleOpenCheckout()}
         />
 
-        {/* 3. HOW TO SUBSCRIPTION (3 Vertical Instagram-style Reels) */}
-        <HowToSubscriptionSection
-          data={config.subscription}
+        {/* 3. CALORIE CALCULATOR */}
+        <CalorieCalculatorSection
+          data={config.calculator}
           onJoinClick={() => handleOpenCheckout()}
         />
 
@@ -171,6 +172,7 @@ export default function App() {
         updateHero={updateHero}
         updateAbout={updateAbout}
         updateSubscription={updateSubscription}
+        updateCalculator={updateCalculator}
         updatePlans={updatePlans}
         updateTransformations={updateTransformations}
         deleteTransformation={deleteTransformation}

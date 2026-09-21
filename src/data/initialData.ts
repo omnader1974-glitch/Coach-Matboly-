@@ -69,6 +69,12 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
       },
     ],
   },
+  calculator: {
+    badge: 'حاسبة السعرات والماكروز الذكية',
+    sectionTitle: 'احسب احتياج جسمك وسعراتك بدقة',
+    subtitle: 'معادلة علمية معتمدة لحساب معدل الحرق اليومي، السعرات المناسبة لهدفك، والماكروز (بروتين، كارب، دهون)',
+    ctaText: 'ابدأ خطتك التدريبية والغذائية المخصصة الآن',
+  },
   plans: {
     sectionTitle: 'MEMBERSHIP PLANS',
     subtitle: 'INVEST IN YOUR HEALTH AND GET TAILORED COACHING DESIGNED FOR GUARANTEED RESULTS',

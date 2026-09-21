@@ -5,6 +5,7 @@ import {
   Download,
   Upload,
   Film,
+  Calculator,
   Plus,
   Trash2,
   ArrowRight,
@@ -57,6 +58,7 @@ interface AdminDashboardProps {
   updateHero: (updates: Partial<SiteConfig['hero']>) => void;
   updateAbout: (updates: Partial<SiteConfig['about']>) => void;
   updateSubscription: (updates: Partial<SiteConfig['subscription']>) => void;
+  updateCalculator?: (updates: Partial<NonNullable<SiteConfig['calculator']>>) => void;
   updatePlans: (updates: Partial<SiteConfig['plans']>) => void;
   updateTransformations?: (updates: Partial<SiteConfig['transformations']>, immediate?: boolean) => void;
   deleteTransformation?: (targetIdOrIndex: string | number) => Promise<{ success: boolean; error?: string }>;
@@ -71,7 +73,7 @@ interface AdminDashboardProps {
   deleteCustomer: (customerId: string) => Promise<{ success: boolean }>;
 }
 
-type TabType = 'customers' | 'hero' | 'about' | 'reels' | 'plans' | 'transformations' | 'choices' | 'contact' | 'footer' | 'backup';
+type TabType = 'customers' | 'hero' | 'about' | 'calculator' | 'plans' | 'transformations' | 'choices' | 'contact' | 'footer' | 'backup';
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   isOpen,
@@ -83,6 +85,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   updateHero,
   updateAbout,
   updateSubscription,
+  updateCalculator,
   updatePlans,
   updateTransformations,
   deleteTransformation,
@@ -288,7 +291,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {[
             { id: 'customers', label: `العملاء والاشتراكات (${customers.length})`, icon: Users, isHighlight: true },
             { id: 'transformations', label: `قصص التحول (${config.transformations?.items?.length || 0})`, icon: Trophy, isHighlight: true },
-            { id: 'reels', label: 'فيديوهات الريلز (Reels)', icon: Film },
+            { id: 'calculator', label: 'حاسبة السعرات (Calculator)', icon: Calculator },
             { id: 'plans', label: 'باقات الاشتراك والأسعار', icon: DollarSign },
             { id: 'hero', label: 'الواجهة الرئيسية (Hero)', icon: Sparkles },
             { id: 'about', label: 'عن كوتش مدبولي (About)', icon: User },
@@ -1150,294 +1153,127 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
-          {/* TAB 3: 3 VERTICAL INSTAGRAM-STYLE REELS VIDEOS */}
-          {activeTab === 'reels' && (
-            <div className="space-y-6 max-w-5xl">
+          {/* TAB 3: CALORIE & MACRO CALCULATOR */}
+          {activeTab === 'calculator' && (
+            <div className="space-y-6 max-w-4xl">
               <div className="bg-neutral-900/90 p-5 border-2 border-[#FFE600]/40 rounded-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 text-[#FFE600] font-heading font-black text-xl">
-                    <Film className="w-6 h-6" />
-                    <span>مدير فيديوهات الريلز الثلاثة (3 REELS VIDEOS)</span>
+                    <Calculator className="w-6 h-6" />
+                    <span>إعدادات حاسبة السعرات والماكروز (Calorie Calculator)</span>
                   </div>
                   <p className="text-xs text-neutral-300 mt-1 leading-relaxed max-w-2xl">
-                    تُعرض فيديوهات الريلز الثلاثة جنباً إلى جنب في صف أفقي واحد على الموقع. تعمل جميعها تلقائياً بدون صوت وبشكل متكرر ومستمر. يمكنك رفع فيديوهات من جهازك، تغيير الروابط، حذف، أو إعادة ترتيب الفيديوهات.
+                    تتيح حاسبة السعرات الذكية للزوار حساب معدل الأيض الأساسي (BMR) ومعدل الحرق اليومي (TDEE) وتوزيع الماكروز أوتوماتيكياً بمعادلات ميفلين-سانت جيور وكاتش-ماكاردل المعتمدة. يمكنك تخصيص نصوص العناوين وزر الاشتراك هنا.
                   </p>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (config.subscription.reels.length < 3) {
-                        const newSlot: ReelVideoItem = {
-                          id: `reel-${Date.now()}`,
-                          title: `Phase 0${config.subscription.reels.length + 1} Protocol`,
-                          stepNumber: `0${config.subscription.reels.length + 1}`,
-                          description: 'Custom tailored coaching progression and metrics.',
-                          videoUrl: PRESET_FITNESS_VIDEOS[config.subscription.reels.length % PRESET_FITNESS_VIDEOS.length].url,
-                          badge: `STEP 0${config.subscription.reels.length + 1}`,
-                        };
-                        updateSubscription({ reels: [...config.subscription.reels, newSlot] });
-                      }
-                    }}
-                    disabled={config.subscription.reels.length >= 3}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FFE600] disabled:opacity-40 text-black font-heading font-black text-xs rounded-sm hover:bg-[#fff033] cursor-pointer"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>إضافة خانة ريلز ({config.subscription.reels.length}/3)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      updateSubscription({
-                        reels: DEFAULT_SITE_CONFIG.subscription.reels,
-                      });
-                    }}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-neutral-900 border border-neutral-700 hover:border-neutral-500 text-neutral-300 hover:text-white text-xs font-bold rounded-sm cursor-pointer"
-                    title="استعادة الفيديوهات الافتراضية الثلاثة"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>استعادة الافتراضي</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (updateCalculator) {
+                      updateCalculator(DEFAULT_SITE_CONFIG.calculator);
+                      setSaveToast(true);
+                      setTimeout(() => setSaveToast(false), 2000);
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-sm bg-neutral-800 border border-neutral-700 hover:border-[#FFE600] hover:text-[#FFE600] text-xs font-bold transition-all shrink-0 cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>استعادة النصوص الافتراضية</span>
+                </button>
               </div>
 
-              {/* Section Titles */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-neutral-900 border border-neutral-800 rounded-md p-6 space-y-5">
+                <h4 className="font-heading font-black text-base text-white border-b border-neutral-800 pb-3 flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-[#FFE600]" />
+                  <span>تخصيص نصوص قسم الحاسبة</span>
+                </h4>
+
+                {/* Badge */}
                 <div>
-                  <label className="block text-xs font-bold text-neutral-300 mb-1">
-                    عنوان قسم الاشتراكات (Section Title)
+                  <label className="block text-xs font-bold text-neutral-300 mb-1.5">
+                    النص الترويجي الصغير (Badge):
                   </label>
                   <input
                     type="text"
-                    value={config.subscription.sectionTitle}
-                    onChange={(e) => updateSubscription({ sectionTitle: e.target.value })}
-                    className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-2 text-sm text-white focus:border-[#FFE600] focus:outline-none"
+                    value={config.calculator?.badge || ''}
+                    onChange={(e) =>
+                      updateCalculator &&
+                      updateCalculator({ badge: e.target.value })
+                    }
+                    placeholder="حاسبة السعرات والماكروز الذكية"
+                    className="w-full bg-black border border-neutral-800 focus:border-[#FFE600] text-white px-3.5 py-2.5 rounded-sm text-sm focus:outline-none"
                   />
                 </div>
 
+                {/* Section Title */}
                 <div>
-                  <label className="block text-xs font-bold text-neutral-300 mb-1">
-                    العنوان الفرعي (Subtitle)
+                  <label className="block text-xs font-bold text-neutral-300 mb-1.5">
+                    عنوان القسم الرئيسي (Section Title):
                   </label>
                   <input
                     type="text"
-                    value={config.subscription.subtitle}
-                    onChange={(e) => updateSubscription({ subtitle: e.target.value })}
-                    className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-2 text-sm text-white focus:border-[#FFE600] focus:outline-none"
+                    value={config.calculator?.sectionTitle || ''}
+                    onChange={(e) =>
+                      updateCalculator &&
+                      updateCalculator({ sectionTitle: e.target.value })
+                    }
+                    placeholder="احسب احتياج جسمك وسعراتك بدقة"
+                    className="w-full bg-black border border-neutral-800 focus:border-[#FFE600] text-white px-3.5 py-2.5 rounded-sm text-sm focus:outline-none"
                   />
                 </div>
-              </div>
 
-              {/* The Reel Slots */}
-              <div className="space-y-6 pt-2">
-                {config.subscription.reels.map((reel, idx) => (
-                  <div
-                    key={reel.id || idx}
-                    className="bg-black/90 border border-neutral-800 rounded-lg p-5 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start shadow-xl"
-                  >
-                    {/* Live Reel Preview Column */}
-                    <div className="lg:col-span-4 flex flex-col items-center">
-                      <div className="relative w-44 aspect-[9/16] bg-neutral-950 rounded-lg overflow-hidden border-2 border-[#FFE600]/60 shadow-lg">
-                        <video
-                          src={reel.videoUrl}
-                          autoPlay
-                          muted
-                          loop
-                          playsInline
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-2 right-2 bg-black/80 px-2 py-0.5 rounded text-[10px] font-bold text-[#FFE600]">
-                          {reel.badge || `STEP 0${idx + 1}`}
-                        </div>
-                        <div className="absolute bottom-2 right-2 left-2 p-1.5 bg-gradient-to-t from-black via-black/80 to-transparent">
-                          <p className="text-[11px] font-black text-white truncate">{reel.title}</p>
-                          <p className="text-[9px] text-neutral-300 truncate">{reel.description}</p>
-                        </div>
-                      </div>
-                      <span className="text-[11px] text-neutral-400 font-medium mt-2">
-                        معاينة طولية 9:16 (تشغيل مستمر)
-                      </span>
-                    </div>
+                {/* Subtitle */}
+                <div>
+                  <label className="block text-xs font-bold text-neutral-300 mb-1.5">
+                    الوصف التوضيحي (Subtitle):
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={config.calculator?.subtitle || ''}
+                    onChange={(e) =>
+                      updateCalculator &&
+                      updateCalculator({ subtitle: e.target.value })
+                    }
+                    placeholder="معادلة علمية معتمدة لحساب معدل الحرق اليومي (BMR) والاحتياج الفعلي (TDEE) مع توزيع دقيق للماكروز"
+                    className="w-full bg-black border border-neutral-800 focus:border-[#FFE600] text-white px-3.5 py-2.5 rounded-sm text-sm focus:outline-none leading-relaxed"
+                  />
+                </div>
 
-                    {/* Reel Configuration Form */}
-                    <div className="lg:col-span-8 space-y-4">
-                      <div className="flex items-center justify-between pb-2 border-b border-neutral-800">
-                        <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-[#FFE600] text-black font-heading font-black text-xs flex items-center justify-center">
-                            {idx + 1}
-                          </span>
-                          <h4 className="font-heading font-black text-lg text-white">
-                            فيديو الريلز رقم {idx + 1} (Reel #{idx + 1})
-                          </h4>
-                        </div>
+                {/* CTA Button Text */}
+                <div>
+                  <label className="block text-xs font-bold text-neutral-300 mb-1.5">
+                    نص زر التحويل للاشتراك (CTA Button Text):
+                  </label>
+                  <input
+                    type="text"
+                    value={config.calculator?.ctaText || ''}
+                    onChange={(e) =>
+                      updateCalculator &&
+                      updateCalculator({ ctaText: e.target.value })
+                    }
+                    placeholder="اشترك الآن واحصل على دايت وجدول تمرين مخصص 100%"
+                    className="w-full bg-black border border-neutral-800 focus:border-[#FFE600] text-white px-3.5 py-2.5 rounded-sm text-sm focus:outline-none"
+                  />
+                </div>
 
-                        {/* Actions: Reorder & Delete */}
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            disabled={idx === 0}
-                            onClick={() => {
-                              if (idx > 0) {
-                                const next = [...config.subscription.reels];
-                                const temp = next[idx - 1];
-                                next[idx - 1] = next[idx];
-                                next[idx] = temp;
-                                updateSubscription({ reels: next });
-                              }
-                            }}
-                            className="p-1.5 bg-neutral-900 border border-neutral-700 disabled:opacity-30 rounded text-neutral-300 hover:text-white hover:border-[#FFE600] cursor-pointer"
-                            title="تحريك الفيديو للأمام / اليمين"
-                          >
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            disabled={idx === config.subscription.reels.length - 1}
-                            onClick={() => {
-                              if (idx < config.subscription.reels.length - 1) {
-                                const next = [...config.subscription.reels];
-                                const temp = next[idx + 1];
-                                next[idx + 1] = next[idx];
-                                next[idx] = temp;
-                                updateSubscription({ reels: next });
-                              }
-                            }}
-                            className="p-1.5 bg-neutral-900 border border-neutral-700 disabled:opacity-30 rounded text-neutral-300 hover:text-white hover:border-[#FFE600] cursor-pointer"
-                            title="تحريك الفيديو للخلف / اليسار"
-                          >
-                            <ArrowLeft className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (config.subscription.reels.length <= 1) {
-                                alert('يجب الإبقاء على فيديو واحد على الأقل.');
-                                return;
-                              }
-                              const next = config.subscription.reels.filter((_, i) => i !== idx);
-                              updateSubscription({ reels: next });
-                            }}
-                            className="p-1.5 bg-red-950/50 border border-red-800/80 hover:bg-red-900 text-red-300 hover:text-white rounded cursor-pointer mr-1"
-                            title="حذف هذا الفيديو"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div className="sm:col-span-2">
-                          <label className="block text-[11px] font-bold text-neutral-300 mb-1">
-                            عنوان الخطوة (Title)
-                          </label>
-                          <input
-                            type="text"
-                            value={reel.title}
-                            onChange={(e) => {
-                              const next = [...config.subscription.reels];
-                              next[idx] = { ...next[idx], title: e.target.value };
-                              updateSubscription({ reels: next });
-                            }}
-                            className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-1.5 text-xs text-white focus:border-[#FFE600] focus:outline-none"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-bold text-neutral-300 mb-1">
-                            رقم المرحلة (e.g. 01)
-                          </label>
-                          <input
-                            type="text"
-                            value={reel.stepNumber}
-                            onChange={(e) => {
-                              const next = [...config.subscription.reels];
-                              next[idx] = { ...next[idx], stepNumber: e.target.value };
-                              updateSubscription({ reels: next });
-                            }}
-                            className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-1.5 text-xs text-white focus:border-[#FFE600] focus:outline-none"
-                            placeholder="01"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-bold text-neutral-300 mb-1">
-                          وصف الخطوة والمرحلة (Description)
-                        </label>
-                        <textarea
-                          rows={2}
-                          value={reel.description}
-                          onChange={(e) => {
-                            const next = [...config.subscription.reels];
-                            next[idx] = { ...next[idx], description: e.target.value };
-                            updateSubscription({ reels: next });
-                          }}
-                          className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-1.5 text-xs text-white focus:border-[#FFE600] focus:outline-none"
-                        />
-                      </div>
-
-                      {/* Video Source Upload, Replace, & Presets */}
-                      <div className="bg-neutral-900/90 p-3.5 rounded border border-neutral-800 space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <label className="block text-[11px] font-bold text-[#FFE600]">
-                            تعديل واستبدال مصدر الفيديو:
-                          </label>
-                          <span className="text-[10px] text-neutral-400">صيغ MP4 أو WebM أو رابط مباشر</span>
-                        </div>
-
-                        <input
-                          type="text"
-                          value={reel.videoUrl}
-                          onChange={(e) => {
-                            const next = [...config.subscription.reels];
-                            next[idx] = { ...next[idx], videoUrl: e.target.value };
-                            updateSubscription({ reels: next });
-                          }}
-                          className="w-full bg-black border border-neutral-700 rounded-sm px-3 py-1.5 text-xs text-white font-mono"
-                          placeholder="https://... (رابط الفيديو)"
-                        />
-
-                        {/* Quick Presets Dropdown */}
-                        <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                          <span className="text-[10px] text-neutral-400 font-bold">نماذج جاهزة سريعة:</span>
-                          {PRESET_FITNESS_VIDEOS.map((preset, pIdx) => (
-                            <button
-                              key={pIdx}
-                              type="button"
-                              onClick={() => {
-                                const next = [...config.subscription.reels];
-                                next[idx] = { ...next[idx], videoUrl: preset.url };
-                                updateSubscription({ reels: next });
-                              }}
-                              className="px-2 py-0.5 bg-black border border-neutral-700 hover:border-[#FFE600] rounded text-[10px] text-neutral-300 hover:text-white cursor-pointer"
-                            >
-                              {preset.label}
-                            </button>
-                          ))}
-                        </div>
-
-                        {/* Direct File Upload */}
-                        <div className="pt-2 border-t border-neutral-800">
-                          <label className="block text-[10px] text-neutral-300 font-bold mb-1">
-                            رفع فيديو مخصص من جهازك (Upload Video):
-                          </label>
-                          <input
-                            type="file"
-                            accept="video/mp4,video/webm,video/quicktime"
-                            onChange={(e) =>
-                              handleFileUpload(e, (dataUrl) => {
-                                const next = [...config.subscription.reels];
-                                next[idx] = { ...next[idx], videoUrl: dataUrl };
-                                updateSubscription({ reels: next });
-                              })
-                            }
-                            className="text-xs text-neutral-400 file:py-1 file:px-3 file:rounded-sm file:border-0 file:text-xs file:font-bold file:bg-[#FFE600] file:text-black cursor-pointer"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                {/* Quick Info Box */}
+                <div className="bg-black/60 border border-neutral-800 p-4 rounded-sm text-xs text-neutral-400 space-y-2 mt-4">
+                  <div className="flex items-center gap-2 text-[#FFE600] font-bold">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>المعادلات الحسابية المعتمدة في الحاسبة:</span>
                   </div>
-                ))}
+                  <ul className="list-disc list-inside space-y-1 text-neutral-300 ps-2">
+                    <li>
+                      <strong>معادلة ميفلين-سانت جيور (Mifflin-St Jeor):</strong> تُطبَّق تلقائياً بالاعتماد على الطول والوزن والعمر والنوع.
+                    </li>
+                    <li>
+                      <strong>معادلة كاتش-ماكاردل (Katch-McArdle):</strong> تُفعَّل تلقائياً بمجرد إدخال المشترك لنسبة الدهون (%) لحساب الأيض بدقة الكتلة الصافية (Lean Body Mass).
+                    </li>
+                    <li>
+                      <strong>توزيع الماكروز:</strong> 2.0g-2.2g بروتين لكل كجم، 25% دهون صحية، وباقي السعرات كاربوهيدرات معقدة لدعم الطاقة والاستشفاء.
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           )}

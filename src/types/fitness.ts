@@ -48,6 +48,13 @@ export interface HowToSubscriptionData {
   reels: ReelVideoItem[];
 }
 
+export interface CalorieCalculatorData {
+  badge?: string;
+  sectionTitle?: string;
+  subtitle?: string;
+  ctaText?: string;
+}
+
 export interface PlanDurationPrice {
   id: string;
   months: number;
@@ -146,7 +153,8 @@ export interface FooterData {
 export interface SiteConfig {
   hero: HeroData;
   about: AboutCoachData;
-  subscription: HowToSubscriptionData;
+  subscription?: HowToSubscriptionData;
+  calculator?: CalorieCalculatorData;
   plans: MembershipPlansData;
   transformations: TransformationsData;
   choices?: HealthierChoicesData;

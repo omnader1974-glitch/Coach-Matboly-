@@ -59,6 +59,66 @@ export interface Translations {
     note: string;
     ctaBtn: string;
   };
+  calculator: {
+    badge: string;
+    sectionTitle: string;
+    subtitle: string;
+    genderLabel: string;
+    male: string;
+    female: string;
+    heightLabel: string;
+    heightUnit: string;
+    weightLabel: string;
+    weightUnit: string;
+    ageLabel: string;
+    ageUnit: string;
+    bodyFatLabel: string;
+    bodyFatOptional: string;
+    bodyFatHint: string;
+    bodyFatActiveBadge: string;
+    activityLabel: string;
+    activityLevels: {
+      sedentary: { label: string; desc: string };
+      light: { label: string; desc: string };
+      moderate: { label: string; desc: string };
+      very: { label: string; desc: string };
+      extra: { label: string; desc: string };
+    };
+    goalLabel: string;
+    goals: {
+      cut: { label: string; desc: string };
+      aggressiveCut: { label: string; desc: string };
+      maintain: { label: string; desc: string };
+      bulk: { label: string; desc: string };
+    };
+    resultsTitle: string;
+    bmrLabel: string;
+    bmrDesc: string;
+    tdeeLabel: string;
+    tdeeDesc: string;
+    recommendedCaloriesLabel: string;
+    recommendedCaloriesDesc: string;
+    caloriesUnit: string;
+    macrosTitle: string;
+    macrosSubtitle: string;
+    proteinLabel: string;
+    carbsLabel: string;
+    fatsLabel: string;
+    gramsUnit: string;
+    formulaUsed: string;
+    mifflinFormula: string;
+    katchFormula: string;
+    ctaButton: string;
+    ctaNote: string;
+    calculateBtn: string;
+    recalculateBtn: string;
+    resetBtn: string;
+    validationError: string;
+    awaitingTitle: string;
+    awaitingDesc: string;
+    selectGenderPrompt: string;
+    selectActivityPrompt: string;
+  };
   plans: {
     badge: string;
     sectionTitle: string;
@@ -209,7 +269,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
   ar: {
     nav: {
       about: 'من نحن',
-      howTo: 'كيفية الاشتراك',
+      howTo: 'حاسبة السعرات',
       memberships: 'الباقات والاشتراكات',
       transformations: 'قصص التحول',
       whyUs: 'قصص التحول',
@@ -281,6 +341,66 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       ],
       note: 'جميع البرامج مصممة ومخصصة 100% من قِبل كوتش مدبولي بعد ملء استمارة البيانات الأولية.',
       ctaBtn: 'اشترك وابدأ رحلتك الآن',
+    },
+    calculator: {
+      badge: 'حاسبة السعرات والماكروز الذكية',
+      sectionTitle: 'احسب احتياج جسمك وسعراتك بدقة',
+      subtitle: 'معادلة علمية معتمدة لحساب معدل الحرق اليومي (BMR) والاحتياج الفعلي (TDEE) مع توزيع دقيق للماكروز',
+      genderLabel: 'الجنس',
+      male: 'ذكر',
+      female: 'أنثى',
+      heightLabel: 'الطول',
+      heightUnit: 'سم',
+      weightLabel: 'الوزن الحالي',
+      weightUnit: 'كجم',
+      ageLabel: 'العمر',
+      ageUnit: 'سنة',
+      bodyFatLabel: 'نسبة الدهون في الجسم (Body Fat %)',
+      bodyFatOptional: 'اختياري',
+      bodyFatHint: 'إذا كنت تعرف نسبة دهونك، أدخلها لتفعيل معادلة كاتش-ماكاردل (Katch-McArdle) الأكثر دقة المعتمدة على الكتلة العضلية الصافية.',
+      bodyFatActiveBadge: 'معادلة كاتش-ماكاردل نشطة (حساب بالكتلة الصافية LBM)',
+      activityLabel: 'مستوى النشاط اليومي والبدني',
+      activityLevels: {
+        sedentary: { label: 'خامل / قليل الحركة', desc: 'عمل مكتبي وقليل أو بدون تمارين رياضية' },
+        light: { label: 'نشاط خفيف', desc: 'تمارين خفيفة 1 إلى 3 أيام في الأسبوع' },
+        moderate: { label: 'نشاط متوسط', desc: 'تمارين معتدلة 3 إلى 5 أيام في الأسبوع' },
+        very: { label: 'نشاط عالي', desc: 'تمارين شاقة 6 إلى 7 أيام في الأسبوع' },
+        extra: { label: 'نشاط فائق / رياضي محترف', desc: 'تمارين شاقة يومياً أو عمل بدني شاق مع تمرين' },
+      },
+      goalLabel: 'اختر هدفك الرياضي لتحديد السعرات والماكروز',
+      goals: {
+        cut: { label: 'خسارة دهون ونحت الجسم', desc: 'عجز سعرات معتدل (-20%) للحفاظ على العضلات وحرق الدهون' },
+        aggressiveCut: { label: 'تنشيف سريع ومكثف', desc: 'عجز سعرات أكبر (-25%) للنزول السريع قبل مناسبة' },
+        maintain: { label: 'تثبيت الوزن الحالي', desc: 'استهلاك سعرات مساوية لمعدل الحرق اليومي (100% TDEE)' },
+        bulk: { label: 'بناء عضل وضخامة نظيفة', desc: 'فائض سعرات خفيف (+10%) لزيادة الكتلة العضلية بأقل دهون' },
+      },
+      resultsTitle: 'النتائج والاحتياج اليومي المقدر',
+      bmrLabel: 'معدل الأيض الأساسي (BMR)',
+      bmrDesc: 'السعرات التي يحرقها جسمك في وضع الراحة التامة فقط للحفاظ على وظائف الأعضاء والحياة.',
+      tdeeLabel: 'معدل الحرق اليومي الإجمالي (TDEE)',
+      tdeeDesc: 'إجمالي السعرات التي يحرقها جسمك يومياً بناءً على نشاطك وحركتك وتمارينك الرياضية.',
+      recommendedCaloriesLabel: 'السعرات اليومية الموصى بها لهدفك',
+      recommendedCaloriesDesc: 'هدفك اليومي من الطاقة للوصول للنتيجة المطلوبة بأمان وفعالية.',
+      caloriesUnit: 'سعرة / يوم',
+      macrosTitle: 'توزيع الماكروز اليومي (جرامات)',
+      macrosSubtitle: 'نسب محسوبة علمياً لدعم الاستشفاء العضلي وحرق الدهون والشبع',
+      proteinLabel: 'البروتين',
+      carbsLabel: 'الكاربوهيدرات',
+      fatsLabel: 'الدهون الصحية',
+      gramsUnit: 'جرام',
+      formulaUsed: 'المعادلة المستخدمة في الحساب:',
+      mifflinFormula: 'معادلة ميفلين-سانت جيور القياسية (Mifflin-St Jeor)',
+      katchFormula: 'معادلة كاتش-ماكاردل المتقدمة (Katch-McArdle) بالكتلة العضلية الصافية',
+      ctaButton: 'اشترك الآن واحصل على دايت وجدول تمرين مخصص 100%',
+      ctaNote: 'السعرات المحسوبة تقديرية علمياً. مع كوتش مدبولي، يتم تخصيص وجباتك المفضلة وجدول تدريبك أسبوعياً بنتائج مضمونة.',
+      calculateBtn: 'احسب احتياجي اليومي الآن',
+      recalculateBtn: 'إعادة الحساب / تعديل البيانات',
+      resetBtn: 'مسح البيانات',
+      validationError: 'يرجى إدخال جميع البيانات المطلوبة (الجنس، العمر، الطول، الوزن، ومستوى النشاط).',
+      awaitingTitle: 'بانتظار إدخال بياناتك الشخصية',
+      awaitingDesc: 'أدخل قياساتك على اليمين ثم اضغط على زر "احسب احتياجي اليومي الآن" لتوليد نتائجك وسعراتك والماكروز بدقة.',
+      selectGenderPrompt: 'يرجى اختيار الجنس (ذكر أو أنثى)',
+      selectActivityPrompt: 'يرجى اختيار مستوى النشاط اليومي',
     },
     plans: {
       badge: 'اختر خطتك التدريبية',
@@ -553,7 +673,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
   en: {
     nav: {
       about: 'ABOUT',
-      howTo: 'HOW TO SUBSCRIBE',
+      howTo: 'CALORIE CALCULATOR',
       memberships: 'MEMBERSHIPS',
       transformations: 'TRANSFORMATIONS',
       whyUs: 'TRANSFORMATIONS',
@@ -625,6 +745,66 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       ],
       note: 'All programs are 100% personalized by Coach Matboly after submitting your onboarding intake.',
       ctaBtn: 'START YOUR SUBSCRIPTION NOW',
+    },
+    calculator: {
+      badge: 'SMART CALORIE & MACRO CALCULATOR',
+      sectionTitle: 'CALCULATE YOUR EXACT CALORIE & MACRO NEEDS',
+      subtitle: 'Scientifically validated formulas to compute your Basal Metabolic Rate (BMR), Total Daily Energy Expenditure (TDEE), and precise macronutrient targets',
+      genderLabel: 'Gender',
+      male: 'Male',
+      female: 'Female',
+      heightLabel: 'Height',
+      heightUnit: 'cm',
+      weightLabel: 'Current Weight',
+      weightUnit: 'kg',
+      ageLabel: 'Age',
+      ageUnit: 'yrs',
+      bodyFatLabel: 'Body Fat Percentage (%)',
+      bodyFatOptional: 'Optional',
+      bodyFatHint: 'Enter your body fat % if known to activate the Katch-McArdle formula based on Lean Body Mass (LBM) for pinpoint precision.',
+      bodyFatActiveBadge: 'Katch-McArdle Active (LBM Lean Mass Optimized)',
+      activityLabel: 'Daily Activity Level',
+      activityLevels: {
+        sedentary: { label: 'Sedentary', desc: 'Desk job, little to no regular exercise' },
+        light: { label: 'Lightly Active', desc: 'Light exercise or sports 1-3 days per week' },
+        moderate: { label: 'Moderately Active', desc: 'Moderate exercise or sports 3-5 days per week' },
+        very: { label: 'Very Active', desc: 'Hard exercise or sports 6-7 days per week' },
+        extra: { label: 'Extremely Active', desc: 'Heavy physical training, manual labor, or double sessions' },
+      },
+      goalLabel: 'Choose Your Fitness Goal for Tailored Calories & Macros',
+      goals: {
+        cut: { label: 'Fat Loss & Sculpting', desc: 'Moderate deficit (-20%) to burn fat while preserving lean muscle mass' },
+        aggressiveCut: { label: 'Aggressive Shred', desc: 'Larger deficit (-25%) for rapid fat loss prior to events or photoshoot' },
+        maintain: { label: 'Maintain Weight', desc: 'Balanced energy intake matching your daily burn (100% of TDEE)' },
+        bulk: { label: 'Lean Muscle Hypertrophy', desc: 'Clean surplus (+10%) to fuel maximal muscle growth with minimal fat' },
+      },
+      resultsTitle: 'Your Calculated Energy & Daily Requirements',
+      bmrLabel: 'Basal Metabolic Rate (BMR)',
+      bmrDesc: 'Calories your body burns completely at rest to maintain essential vital organs and life support.',
+      tdeeLabel: 'Total Daily Energy Expenditure (TDEE)',
+      tdeeDesc: 'Total calories burned daily based on your metabolic baseline combined with your activity level.',
+      recommendedCaloriesLabel: 'Recommended Daily Calorie Target',
+      recommendedCaloriesDesc: 'Your prescribed daily caloric intake tailored specifically to achieve your goal safely.',
+      caloriesUnit: 'kcal / day',
+      macrosTitle: 'Target Macronutrient Breakdown (Grams)',
+      macrosSubtitle: 'Scientifically distributed for optimal satiety, energy, and muscle tissue recovery',
+      proteinLabel: 'Protein',
+      carbsLabel: 'Carbohydrates',
+      fatsLabel: 'Healthy Fats',
+      gramsUnit: 'grams',
+      formulaUsed: 'Applied Scientific Formula:',
+      mifflinFormula: 'Mifflin-St Jeor Formula (Standard Gold Benchmark)',
+      katchFormula: 'Katch-McArdle Formula (Lean Body Mass LBM Driven)',
+      ctaButton: 'Start Your 100% Customized Workout & Meal Plan',
+      ctaNote: 'Online calculator provides estimated targets. With Coach Matboly, your weekly intake and workouts are customized with guaranteed results.',
+      calculateBtn: 'Calculate Daily Needs',
+      recalculateBtn: 'Recalculate / Update Data',
+      resetBtn: 'Clear Inputs',
+      validationError: 'Please complete all required fields (Gender, Age, Height, Weight, and Activity Level).',
+      awaitingTitle: 'Enter Your Measurements',
+      awaitingDesc: 'Fill in your stats on the left and click "Calculate Daily Needs" to reveal your personalized caloric targets, BMR, TDEE, and macro breakdown.',
+      selectGenderPrompt: 'Please select your gender (Male or Female)',
+      selectActivityPrompt: 'Please select your daily activity level',
     },
     plans: {
       badge: 'CHOOSE YOUR COMMITMENT',
