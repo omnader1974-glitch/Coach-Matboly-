@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Sparkles, Trophy, Clock, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Sparkles, Trophy, Clock, CheckCircle2, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight } from 'lucide-react';
 import { TransformationsData, TransformationItem } from '../types/fitness';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -12,27 +12,89 @@ export const TransformationsSection: React.FC<TransformationsSectionProps> = ({
   data,
   onJoinClick,
 }) => {
-  const { t, isRTL } = useLanguage();
-  const [isPaused, setIsPaused] = useState(false);
+  const { t, isRTL, language } = useLanguage();
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const rawItems: TransformationItem[] = Array.isArray(data?.items) ? data.items : [];
 
-  // Repeat items for infinite continuous marquee if we have items
-  const marqueeItems =
-    rawItems.length > 0
-      ? rawItems.length < 4
-        ? [...rawItems, ...rawItems, ...rawItems, ...rawItems]
-        : [...rawItems, ...rawItems]
-      : [];
+  const rawSectionTitle = data?.sectionTitle || t.transformations?.sectionTitle || 'قصص ونتائج التحول الحقيقية';
+  const rawSubtitle = data?.subtitle || t.transformations?.subtitle || 'شاهد التغييرات المذهلة للأبطال الذين التزموا بخطط وبرامج كوتش المتبولي المخصصة';
 
-  const sectionTitle = data?.sectionTitle || t.transformations?.sectionTitle || 'قصص ونتائج التحول الحقيقية';
-  const subtitle = data?.subtitle || t.transformations?.subtitle || 'شاهد التغييرات المذهلة للأبطال الذين التزموا بخطط وبرامج كوتش مدبولي المخصصة';
+  const sectionTitle = language === 'ar' ? rawSectionTitle.replace(/مدبولي/g, 'المتبولي') : rawSectionTitle;
+  const subtitle = language === 'ar' ? rawSubtitle.replace(/مدبولي/g, 'المتبولي') : rawSubtitle;
   const badgeText = data?.badge || t.transformations?.badge || 'TRANSFORMATION STORIES • قبل وبعد';
+
+  // Scroll smoothly to a specific card index
+  const scrollToIndex = (index: number) => {
+    if (rawItems.length === 0) return;
+    const targetIndex = (index + rawItems.length) % rawItems.length;
+    setCurrentIndex(targetIndex);
+    const targetElement = cardRefs.current[targetIndex];
+    if (targetElement) {
+      targetElement.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    }
+  };
+
+  // Physical navigation:
+  // In RTL (Arabic), the container starts on the right, so cards extend to the left.
+  // Clicking Left Arrow (←) navigates to the card on the left (index + 1 in RTL, or index - 1 in LTR).
+  // Clicking Right Arrow (→) navigates to the card on the right (index - 1 in RTL, or index + 1 in LTR).
+  const handleNavigateLeft = () => {
+    if (rawItems.length === 0) return;
+    const nextIdx = isRTL
+      ? (currentIndex + 1) % rawItems.length
+      : (currentIndex - 1 + rawItems.length) % rawItems.length;
+    scrollToIndex(nextIdx);
+  };
+
+  const handleNavigateRight = () => {
+    if (rawItems.length === 0) return;
+    const nextIdx = isRTL
+      ? (currentIndex - 1 + rawItems.length) % rawItems.length
+      : (currentIndex + 1) % rawItems.length;
+    scrollToIndex(nextIdx);
+  };
+
+  // Sync currentIndex via IntersectionObserver when user swipes on mobile
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || rawItems.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const idxAttr = entry.target.getAttribute('data-index');
+            if (idxAttr !== null) {
+              setCurrentIndex(Number(idxAttr));
+            }
+          }
+        });
+      },
+      {
+        root: container,
+        threshold: 0.55,
+      }
+    );
+
+    cardRefs.current.forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [rawItems]);
 
   return (
     <section
       id="transformations"
-      className="relative py-20 sm:py-24 md:py-28 bg-[#090909] overflow-hidden border-t border-neutral-900"
+      className="relative py-20 sm:py-24 md:py-28 bg-[#090909] overflow-hidden border-t border-neutral-900 select-none"
     >
       {/* Background Ambience / Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 max-w-4xl h-72 bg-[#FFE600]/5 blur-[120px] pointer-events-none rounded-full" />
@@ -49,7 +111,7 @@ export const TransformationsSection: React.FC<TransformationsSectionProps> = ({
 
       <div className="relative z-10">
         {/* Section Header */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-10 sm:mb-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-8 sm:mb-12">
           <div className="inline-flex items-center gap-2 bg-[#FFE600]/10 border border-[#FFE600]/30 px-3.5 py-1.5 rounded-full mb-4">
             <Trophy className="w-4 h-4 text-[#FFE600]" />
             <span className="font-heading font-black text-xs text-[#FFE600] tracking-widest uppercase">
@@ -68,8 +130,8 @@ export const TransformationsSection: React.FC<TransformationsSectionProps> = ({
           <div className="w-20 h-1 bg-[#FFE600] mx-auto mt-4" />
 
           {rawItems.length > 0 && (
-            <p className="text-[11px] text-neutral-500 mt-2.5 font-medium">
-              {t.transformations?.hoverHint || 'مرر الماوس أو المس البطاقة لإيقاف الحركة التلقائية ومعاينة التفاصيل'}
+            <p className="text-[11px] sm:text-xs text-neutral-500 mt-3 font-medium">
+              {t.transformations?.hoverHint || 'استخدم أسهم التنقل (← →) لاستعراض قصص التحول بالتفصيل'}
             </p>
           )}
         </div>
@@ -82,42 +144,61 @@ export const TransformationsSection: React.FC<TransformationsSectionProps> = ({
             <p className="text-xs text-neutral-500 mt-1">يمكن إضافة وتعديل قصص التحول في أي وقت من لوحة التحكم</p>
           </div>
         ) : (
-          /* Full-Width Continuous Animated Scrolling Banner (Infinite Loop Marquee) */
-          <div 
-            className="relative w-full overflow-hidden py-4 select-none group"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-            onTouchStart={() => setIsPaused(true)}
-            onTouchEnd={() => setIsPaused(false)}
-          >
-            {/* Side Fade Overlays */}
-            <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-20 md:w-28 bg-gradient-to-r from-[#090909] via-[#090909]/80 to-transparent z-20 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-20 md:w-28 bg-gradient-to-l from-[#090909] via-[#090909]/80 to-transparent z-20 pointer-events-none" />
+          /* Manual Carousel Slider with Floating Arrow Controls */
+          <div className="relative w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-8">
+            
+            {/* Left Floating Arrow Button (←) */}
+            <button
+              type="button"
+              onClick={handleNavigateLeft}
+              aria-label={isRTL ? 'التالي' : 'Previous'}
+              className="absolute left-1 sm:left-3 md:left-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-black/90 hover:bg-[#FFE600] border-2 border-[#FFE600]/80 hover:border-[#FFE600] text-[#FFE600] hover:text-black flex items-center justify-center transition-all duration-300 shadow-[0_4px_25px_rgba(0,0,0,0.9),0_0_15px_rgba(255,230,0,0.25)] hover:shadow-[0_0_30px_rgba(255,230,0,0.6)] active:scale-95 cursor-pointer backdrop-blur-md group"
+            >
+              <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5] transition-transform group-hover:-translate-x-0.5" />
+            </button>
 
-            {/* Marquee Track */}
+            {/* Right Floating Arrow Button (→) */}
+            <button
+              type="button"
+              onClick={handleNavigateRight}
+              aria-label={isRTL ? 'السابق' : 'Next'}
+              className="absolute right-1 sm:right-3 md:right-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-black/90 hover:bg-[#FFE600] border-2 border-[#FFE600]/80 hover:border-[#FFE600] text-[#FFE600] hover:text-black flex items-center justify-center transition-all duration-300 shadow-[0_4px_25px_rgba(0,0,0,0.9),0_0_15px_rgba(255,230,0,0.25)] hover:shadow-[0_0_30px_rgba(255,230,0,0.6)] active:scale-95 cursor-pointer backdrop-blur-md group"
+            >
+              <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5] transition-transform group-hover:translate-x-0.5" />
+            </button>
+
+            {/* Slider Container with Snap Scroll */}
             <div
-              className="flex items-stretch gap-6 sm:gap-8 will-change-transform"
+              ref={containerRef}
+              className="w-full overflow-x-auto scroll-smooth snap-x snap-mandatory flex items-stretch gap-4 sm:gap-6 md:gap-8 px-6 sm:px-14 md:px-16 py-6 scrollbar-none"
               style={{
-                animationName: isRTL ? 'marqueeRTL' : 'marqueeLTR',
-                animationDuration: `${Math.max(35, marqueeItems.length * 6)}s`,
-                animationTimingFunction: 'linear',
-                animationIterationCount: 'infinite',
-                animationPlayState: isPaused ? 'paused' : 'running',
-                width: 'max-content',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
               }}
             >
-              {marqueeItems.map((item, idx) => {
-                const key = `${item.id || 'trans'}-${idx}`;
-                
+              {rawItems.map((item, idx) => {
+                const key = item.id || `trans-${idx}`;
+                const isSelected = idx === currentIndex;
+
                 // Determine Before & After URLs
                 const beforeImg = item.beforeImageUrl || item.imageUrl || 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=800&auto=format&fit=crop';
                 const afterImg = item.afterImageUrl || item.imageUrl || 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=800&auto=format&fit=crop';
                 const isSeparateSplit = Boolean(item.beforeImageUrl && item.afterImageUrl);
+                const sanitizedDesc = language === 'ar' ? item.description.replace(/مدبولي/g, 'المتبولي') : item.description;
 
                 return (
                   <div
                     key={key}
-                    className="w-[340px] sm:w-[400px] md:w-[450px] bg-[#111111] border border-neutral-800 hover:border-[#FFE600]/70 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 flex flex-col shrink-0 group/card transform-gpu hover:-translate-y-1.5"
+                    data-index={idx}
+                    ref={(el) => {
+                      cardRefs.current[idx] = el;
+                    }}
+                    onClick={() => scrollToIndex(idx)}
+                    className={`w-[85vw] sm:w-[410px] md:w-[470px] bg-[#111111] border rounded-xl overflow-hidden shadow-2xl transition-all duration-300 flex flex-col shrink-0 snap-center group/card cursor-pointer ${
+                      isSelected
+                        ? 'border-[#FFE600] shadow-[0_0_30px_rgba(255,230,0,0.15)] ring-1 ring-[#FFE600]/40 -translate-y-1'
+                        : 'border-neutral-800 hover:border-neutral-700 opacity-90 hover:opacity-100'
+                    }`}
                   >
                     {/* 1200 x 675 px (16:9) Before & After Comparison Frame */}
                     <div dir="ltr" className="relative w-full aspect-[16/9] bg-black overflow-hidden select-none">
@@ -245,7 +326,7 @@ export const TransformationsSection: React.FC<TransformationsSectionProps> = ({
 
                         {/* Description Text */}
                         <p className="text-xs sm:text-[13px] text-neutral-300 leading-relaxed line-clamp-3 mb-4">
-                          {item.description}
+                          {sanitizedDesc}
                         </p>
                       </div>
 
@@ -255,7 +336,11 @@ export const TransformationsSection: React.FC<TransformationsSectionProps> = ({
                           COACH MATBOLY PROTOCOL
                         </span>
                         <button
-                          onClick={onJoinClick}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onJoinClick();
+                          }}
                           className="text-[#FFE600] hover:text-white font-bold inline-flex items-center gap-1 text-xs transition-colors cursor-pointer"
                         >
                           <span>{t.hero?.buttonText || 'اشترك الآن'}</span>
@@ -267,41 +352,68 @@ export const TransformationsSection: React.FC<TransformationsSectionProps> = ({
                 );
               })}
             </div>
+
+            {/* Bottom Slider Navigation Dock: Left Arrow (←), Dots, Counter, Right Arrow (→) */}
+            <div className="mt-6 flex items-center justify-center gap-4 sm:gap-6">
+              {/* Left Arrow Button (←) */}
+              <button
+                type="button"
+                onClick={handleNavigateLeft}
+                aria-label="Previous Transformation"
+                className="w-10 h-10 rounded-full bg-neutral-900 hover:bg-[#FFE600] border border-neutral-700 hover:border-[#FFE600] text-neutral-300 hover:text-black flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
+              >
+                <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
+              </button>
+
+              {/* Dots Pagination */}
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                {rawItems.map((_, dotIdx) => (
+                  <button
+                    key={dotIdx}
+                    type="button"
+                    onClick={() => scrollToIndex(dotIdx)}
+                    aria-label={`Go to slide ${dotIdx + 1}`}
+                    className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                      dotIdx === currentIndex
+                        ? 'w-7 sm:w-8 bg-[#FFE600] shadow-[0_0_10px_rgba(255,230,0,0.6)]'
+                        : 'w-2.5 bg-neutral-700 hover:bg-neutral-500'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Slide Counter Badge */}
+              <div className="px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 text-[11px] font-mono font-bold text-neutral-400">
+                <span className="text-[#FFE600]">{String(currentIndex + 1).padStart(2, '0')}</span>
+                <span className="mx-1 text-neutral-600">/</span>
+                <span>{String(rawItems.length).padStart(2, '0')}</span>
+              </div>
+
+              {/* Right Arrow Button (→) */}
+              <button
+                type="button"
+                onClick={handleNavigateRight}
+                aria-label="Next Transformation"
+                className="w-10 h-10 rounded-full bg-neutral-900 hover:bg-[#FFE600] border border-neutral-700 hover:border-[#FFE600] text-neutral-300 hover:text-black flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer shadow-md"
+              >
+                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+              </button>
+            </div>
           </div>
         )}
 
         {/* Bottom Call to Action */}
         <div className="mt-10 sm:mt-14 text-center max-w-2xl mx-auto px-4">
           <button
+            type="button"
             onClick={onJoinClick}
             className="inline-flex items-center justify-center gap-3 bg-[#FFE600] hover:bg-[#ffe100] active:scale-95 text-black font-heading font-black text-sm sm:text-base tracking-wider uppercase px-8 py-4 rounded-sm transition-all shadow-[0_0_25px_rgba(255,230,0,0.3)] hover:shadow-[0_0_35px_rgba(255,230,0,0.5)] cursor-pointer"
           >
             <Sparkles className="w-5 h-5 text-black" />
-            <span>{t.transformations?.ctaBtn || 'ابدأ قصة تحولك الآن مع كوتش مدبولي'}</span>
+            <span>{t.transformations?.ctaBtn || 'ابدأ قصة تحولك الآن مع كوتش المتبولي'}</span>
           </button>
         </div>
       </div>
-
-      {/* Global Embedded Styles for Keyframe Animations */}
-      <style>{`
-        @keyframes marqueeLTR {
-          0% {
-            transform: translateX(0%);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-        @keyframes marqueeRTL {
-          0% {
-            transform: translateX(0%);
-          }
-          100% {
-            transform: translateX(50%);
-          }
-        }
-      `}</style>
     </section>
   );
 };
-

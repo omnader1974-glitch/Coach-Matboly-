@@ -51,7 +51,7 @@ export const Navbar: React.FC<NavbarProps> = ({ config, onOpenCheckout }) => {
         <a
           href="#"
           className="flex items-center gap-2.5 sm:gap-3 group select-none"
-          title={language === 'ar' ? 'كوتش مدبولي' : 'Coach Matboly'}
+          title={language === 'ar' ? 'المتبولي' : 'Coach Matboly'}
         >
           <img
             src={logoUrl}
@@ -60,7 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({ config, onOpenCheckout }) => {
             referrerPolicy="no-referrer"
           />
           <span className="font-heading font-black text-xl sm:text-2xl md:text-3xl text-white tracking-wider uppercase truncate">
-            {language === 'ar' ? 'كوتش مدبولي' : 'Coach Matboly'}
+            {language === 'ar' ? 'المتبولي' : 'Coach Matboly'}
           </span>
         </a>
 

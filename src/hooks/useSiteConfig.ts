@@ -43,7 +43,14 @@ function mergeWithDefaults(data: any): SiteConfig {
 
   const merged: SiteConfig = {
     ...DEFAULT_SITE_CONFIG,
-    hero: { ...DEFAULT_SITE_CONFIG.hero, ...(data.hero || {}) },
+    hero: {
+      ...DEFAULT_SITE_CONFIG.hero,
+      ...(data.hero || {}),
+      overlayDarkness:
+        data.hero?.overlayDarkness !== undefined && data.hero?.overlayDarkness !== null
+          ? Number(data.hero.overlayDarkness)
+          : (DEFAULT_SITE_CONFIG.hero.overlayDarkness ?? 0),
+    },
     about: {
       ...DEFAULT_SITE_CONFIG.about,
       ...(data.about || {}),
@@ -129,6 +136,17 @@ function mergeWithDefaults(data: any): SiteConfig {
   }
   if (merged.about.signatureText && merged.about.signatureText.toLowerCase().includes('mohamed')) {
     merged.about.signatureText = 'COACH MATBOLY';
+  }
+
+  // Prevent "مدبولي" in any saved strings
+  if (merged.about.coachName && merged.about.coachName.includes('مدبولي')) {
+    merged.about.coachName = merged.about.coachName.replace(/مدبولي/g, 'المتبولي');
+  }
+  if (merged.hero.mainTitle && merged.hero.mainTitle.includes('مدبولي')) {
+    merged.hero.mainTitle = merged.hero.mainTitle.replace(/مدبولي/g, 'المتبولي');
+  }
+  if (merged.footer.brandName && merged.footer.brandName.includes('مدبولي')) {
+    merged.footer.brandName = merged.footer.brandName.replace(/مدبولي/g, 'المتبولي');
   }
 
   return merged;

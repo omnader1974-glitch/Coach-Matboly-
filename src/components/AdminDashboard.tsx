@@ -294,7 +294,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             { id: 'calculator', label: 'حاسبة السعرات (Calculator)', icon: Calculator },
             { id: 'plans', label: 'باقات الاشتراك والأسعار', icon: DollarSign },
             { id: 'hero', label: 'الواجهة الرئيسية (Hero)', icon: Sparkles },
-            { id: 'about', label: 'عن كوتش مدبولي (About)', icon: User },
+            { id: 'about', label: 'عن كوتش المتبولي (About)', icon: User },
             { id: 'contact', label: 'التواصل والسوشيال ميديا', icon: Share2 },
             { id: 'footer', label: 'الفوتر والسياسات', icon: FileText },
             { id: 'backup', label: 'النسخ والضبط', icon: RotateCcw },
@@ -705,18 +705,51 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-neutral-300 mb-1">
-                    درجة تعتيم الخلفية ({config.hero.overlayDarkness}%)
-                  </label>
+                <div className="bg-black/50 p-4 border border-neutral-800 rounded-md">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold text-neutral-200">
+                      درجة تعتيم/ظلام خلفية الواجهة (Hero Overlay Darkness)
+                    </label>
+                    <span className="text-xs font-black px-2.5 py-0.5 rounded bg-[#FFE600] text-black shadow-sm">
+                      {config.hero.overlayDarkness ?? 0}%
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-neutral-400 mb-3">
+                    0% تعني ظهور الصورة أو الفيديو بوضوح كامل دون أي تعتيم (Default). 100% تعني تعتيم أسود كامل.
+                  </p>
                   <input
                     type="range"
-                    min="20"
-                    max="95"
-                    value={config.hero.overlayDarkness}
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={config.hero.overlayDarkness ?? 0}
                     onChange={(e) => updateHero({ overlayDarkness: Number(e.target.value) })}
-                    className="w-full accent-[#FFE600] mt-2"
+                    className="w-full accent-[#FFE600] h-2 bg-neutral-800 rounded-lg cursor-pointer"
                   />
+                  {/* Quick percentage presets */}
+                  <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-neutral-800/80">
+                    <span className="text-[10px] text-neutral-500 font-bold ml-1">تحديد سريع:</span>
+                    {[
+                      { label: '0% (بدون تعتيم)', value: 0 },
+                      { label: '25%', value: 25 },
+                      { label: '50%', value: 50 },
+                      { label: '75%', value: 75 },
+                      { label: '100% (تعتيم كامل)', value: 100 },
+                    ].map((preset) => (
+                      <button
+                        key={preset.value}
+                        type="button"
+                        onClick={() => updateHero({ overlayDarkness: preset.value })}
+                        className={`text-[10px] px-2 py-1 rounded transition-colors ${
+                          (config.hero.overlayDarkness ?? 0) === preset.value
+                            ? 'bg-[#FFE600] text-black font-black'
+                            : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -797,7 +830,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   )}
                   <div
                     className="absolute inset-0 bg-black"
-                    style={{ opacity: config.hero.overlayDarkness / 100 }}
+                    style={{ opacity: (config.hero.overlayDarkness ?? 0) / 100 }}
                   />
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <span className="font-heading font-black text-2xl text-white tracking-widest uppercase">
@@ -814,7 +847,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="space-y-6 max-w-4xl">
               <div className="bg-neutral-900/60 p-4 border border-neutral-800 rounded-md">
                 <h3 className="font-heading font-black text-xl text-white mb-1">
-                  قسم: من هو كوتش مدبولي (ABOUT COACH)
+                  قسم: من هو كوتش المتبولي (ABOUT COACH)
                 </h3>
                 <p className="text-xs text-neutral-400">
                   تعديل سيرة المدرب، المؤهلات والشهادات، الصور الشخصية، وإحصائيات التحولات والخبرة.
@@ -954,7 +987,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div>
                     <h4 className="font-heading font-black text-lg text-[#FFE600] flex items-center gap-2">
                       <ImageIcon className="w-5 h-5 text-[#FFE600]" />
-                      <span>صورة كوتش مدبولي عبر الرابط المباشر (DIRECT IMAGE URL ONLY)</span>
+                      <span>صورة كوتش المتبولي عبر الرابط المباشر (DIRECT IMAGE URL ONLY)</span>
                     </h4>
                     <p className="text-xs text-neutral-400 mt-0.5">
                       الصق رابط الصورة المباشر (Direct Image URL) وسيتم حفظها فورياً وبشكل دائم في قاعدة البيانات وتظهر على الموقع لجميع الزوار.
@@ -1064,7 +1097,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <span>تعذر تحميل الصورة من هذا الرابط - يرجى التأكد من أن الرابط مباشر وينتهي بصيغة صورة (.jpg, .png, إلخ) أو متاح للعامة.</span>
                         </div>
                         <div className="absolute bottom-2 right-2 bg-black/85 backdrop-blur-sm border border-neutral-800 px-2.5 py-1 rounded text-[10px] text-[#FFE600] font-bold">
-                          {config.about.coachName || 'كوتش مدبولي'}
+                          {config.about.coachName || 'المتبولي'}
                         </div>
                       </div>
                     </div>
@@ -1303,7 +1336,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         originalPrice: '1,500 EGP',
                         currency: 'EGP',
                         periodText: 'TOTAL ACCESS',
-                        description: 'خطة تدريب وتغذية متكاملة تشمل تدريب مخصص ومتابعة دورية مباشرة مع كوتش مدبولي.',
+                        description: 'خطة تدريب وتغذية متكاملة تشمل تدريب مخصص ومتابعة دورية مباشرة مع كوتش المتبولي.',
                         features: [
                           'جدول تدريبي مخصص يتجدد أسبوعياً حسب مستواك',
                           'خطة تغذية محسوبة السعرات والماكروز بمرونة كاملة',

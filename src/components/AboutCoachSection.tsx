@@ -9,7 +9,7 @@ interface AboutCoachSectionProps {
 }
 
 export const AboutCoachSection: React.FC<AboutCoachSectionProps> = ({ data, onJoinClick }) => {
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, language } = useLanguage();
 
   const coachPhotoSrc =
     data.primaryPhoto ||
@@ -17,14 +17,19 @@ export const AboutCoachSection: React.FC<AboutCoachSectionProps> = ({ data, onJo
     'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop';
 
   const secondaryPhotoSrc = data.secondaryPhoto || data.secondaryImage;
-  const coachDisplayName = data.coachName || t.about.coachName;
+  const rawCoachName = data.coachName || t.about.coachName;
+  const coachDisplayName = language === 'ar'
+    ? rawCoachName.replace(/مدبولي/g, 'المتبولي')
+    : rawCoachName;
 
-  const displayParagraphs =
+  const rawParagraphs =
     data.paragraphs && data.paragraphs.length > 0
       ? data.paragraphs
       : (data.bioParagraph1 || data.bioParagraph2)
       ? [data.bioParagraph1, data.bioParagraph2].filter(Boolean) as string[]
       : t.about.paragraphs;
+
+  const displayParagraphs = rawParagraphs.map(p => language === 'ar' ? p.replace(/مدبولي/g, 'المتبولي') : p);
 
   const displayCredentials =
     data.credentials && data.credentials.length > 0 ? data.credentials : t.about.credentials;

@@ -9,7 +9,7 @@ interface HeroSectionProps {
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ data, onJoinClick }) => {
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, language } = useLanguage();
 
   const scrollToNext = () => {
     const target = document.querySelector('#about-coach') || document.querySelector('#membership-plans');
@@ -17,6 +17,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ data, onJoinClick }) =
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
+
+  const rawMainTitle = data.mainTitle || t.hero.mainTitle;
+  const heroCoachName = language === 'ar'
+    ? rawMainTitle.replace(/مدبولي/g, 'المتبولي')
+    : rawMainTitle;
+
+  const currentOverlayDarkness = data.overlayDarkness ?? 0;
 
   return (
     <section className="relative min-h-[92vh] sm:min-h-screen w-full flex items-center justify-center overflow-hidden bg-black pt-20 pb-16">
@@ -39,13 +46,24 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ data, onJoinClick }) =
           />
         )}
 
-        {/* Multi-layered Dark Vignette and Overlay for Cinematic Gym Atmosphere */}
+        {/* Dynamic Dark Overlay for Background Image/Video Controlled via Admin */}
         <div
-          className="absolute inset-0 bg-black"
-          style={{ opacity: (data.overlayDarkness ?? 75) / 100 }}
+          className="absolute inset-0 bg-black transition-opacity duration-200"
+          style={{ opacity: currentOverlayDarkness / 100 }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0b] via-transparent to-black/80" />
-        <div className="absolute inset-0 bg-radial from-transparent via-black/40 to-black/90" />
+        {/* Subtle Vignette & Gradient if darkness > 0 */}
+        {currentOverlayDarkness > 0 && (
+          <>
+            <div 
+              className="absolute inset-0 bg-gradient-to-t from-[#0b0b0b] via-transparent to-black/80 pointer-events-none transition-opacity duration-200"
+              style={{ opacity: Math.min(1, currentOverlayDarkness / 60) }}
+            />
+            <div 
+              className="absolute inset-0 bg-radial from-transparent via-black/40 to-black/90 pointer-events-none transition-opacity duration-200"
+              style={{ opacity: Math.min(1, currentOverlayDarkness / 60) }}
+            />
+          </>
+        )}
         
         {/* Subtle dynamic grid pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
@@ -61,7 +79,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ data, onJoinClick }) =
 
         {/* Coach Name Subheading */}
         <p className="font-heading font-bold text-xl sm:text-2xl md:text-3xl text-neutral-300 tracking-widest uppercase mb-2">
-          {data.mainTitle || t.hero.mainTitle}
+          {heroCoachName}
         </p>
 
         {/* Core Main Highlight Text: [ BE YOURSELF ] / [ اصنع نسختك الأقوى ] */}

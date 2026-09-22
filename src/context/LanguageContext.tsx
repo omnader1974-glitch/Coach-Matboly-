@@ -44,7 +44,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const root = document.documentElement;
     root.lang = language;
     root.dir = language === 'ar' ? 'rtl' : 'ltr';
-    document.title = language === 'ar' ? 'كوتش مدبولي | Coach Matboly' : 'Coach Matboly';
+    document.title = language === 'ar' ? 'المتبولي | Coach Matboly' : 'Coach Matboly';
 
     // Ensure tab icon and apple touch icon are consistently set
     const updateIcon = (rel: string) => {

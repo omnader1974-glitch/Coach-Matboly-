@@ -142,7 +142,7 @@ export const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({
                 {t.checkout.modalTitle || t.checkout.title || (isRTL ? 'الانضمام لبرنامج التدريب' : 'JOIN COACHING PROGRAM')}
               </h3>
               <p className="text-xs text-neutral-400">
-                {t.checkout.modalSubtitle || t.checkout.subtitle || (isRTL ? 'إشراف ومتابعة مباشرة مع كوتش مدبولي' : 'Direct Mentorship with Coach Matboly')}
+                {t.checkout.modalSubtitle || t.checkout.subtitle || (isRTL ? 'إشراف ومتابعة مباشرة مع كوتش المتبولي' : 'Direct Mentorship with Coach Matboly')}
               </p>
             </div>
           </div>

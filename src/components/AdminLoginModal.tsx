@@ -169,7 +169,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           <div className="mt-6 pt-4 border-t border-neutral-800/80 text-center">
             <p className="text-[11px] text-neutral-500">
               {isRTL
-                ? 'لوحة إدارة المحتوى والاشتراكات خاصة بكوتش مدبولي فقط'
+                ? 'لوحة إدارة المحتوى والاشتراكات خاصة بكوتش المتبولي فقط'
                 : 'CMS & Subscription dashboard restricted to Coach Matboly'}
             </p>
           </div>

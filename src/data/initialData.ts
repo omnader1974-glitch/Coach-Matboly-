@@ -10,7 +10,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     buttonLink: '#membership-plans',
     mediaType: 'image',
     mediaUrl: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=1600&auto=format&fit=crop',
-    overlayDarkness: 75,
+    overlayDarkness: 0,
   },
   about: {
     sectionTitle: 'WHO IS COACH MATBOLY',
@@ -193,7 +193,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   transformations: {
     badge: 'TRANSFORMATION STORIES • قبل وبعد',
     sectionTitle: 'قصص ونتائج التحول الحقيقية',
-    subtitle: 'شاهد التغييرات المذهلة للأبطال الذين التزموا بخطط وبرامج كوتش مدبولي المخصصة',
+    subtitle: 'شاهد التغييرات المذهلة للأبطال الذين التزموا بخطط وبرامج كوتش المتبولي المخصصة',
     items: [
       {
         id: 'trans-1',
@@ -245,7 +245,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
         duration: '120 يوم (16 أسبوع)',
         weightChange: '-21 كجم',
         tag: 'إعادة تشكيل الجسم (Body Recomposition)',
-        description: 'تحول جذري في شكل القوام وتحسين الصحة العامة واللياقة البدنية تحت إشراف وتوجيه كوتش مدبولي المباشر.',
+        description: 'تحول جذري في شكل القوام وتحسين الصحة العامة واللياقة البدنية تحت إشراف وتوجيه كوتش المتبولي المباشر.',
         beforeImageUrl: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=800&auto=format&fit=crop',
         afterImageUrl: 'https://images.unsplash.com/photo-1549060279-7e168fcee0c2?q=80&w=800&auto=format&fit=crop',
         imageUrl: 'https://images.unsplash.com/photo-1549060279-7e168fcee0c2?q=80&w=800&auto=format&fit=crop',
